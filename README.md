@@ -1,6 +1,6 @@
-# iNNiT? – BU London Fall '25 (CAS CS 411)
+# iNNiT?
 ## About
-iNNiT? is a Python-based service that locates events in London via Instagram & TikTok posts.
+iNNiT? is a Python-based service that locates events in London via Instagram & TikTok posts. This app was developed in the BU London Fall '25 period for CAS CS 411.
 
 
 #### Goals & Objectives:
