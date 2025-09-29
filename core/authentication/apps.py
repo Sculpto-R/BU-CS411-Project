@@ -1,6 +1,6 @@
 from django.apps import AppConfig
 
 
-class MapAppConfig(AppConfig):
+class AuthenticationConfig(AppConfig):
     default_auto_field = 'django.db.models.BigAutoField'
-    name = 'map_app'
+    name = 'authentication'

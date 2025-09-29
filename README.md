@@ -27,3 +27,7 @@ iNNiT? is a web-based program mapping London community events and entertainment 
 
 ![App Screenshot](https://via.placeholder.com/468x300?text=App+Screenshot+Here)
 
+## - Running
+
+Current way to run this program is to clone the repo to a local folder, and then type in the following in a terminal:
+`python manage.py runserver`
