@@ -1,0 +1,13 @@
+Hey there, {{ user.full_name|default:user.email }},
+
+Thanks for registering for EventsMap (London).
+
+To continue, please verify your email address by visiting the following link:
+
+{{ verify_url }}
+
+This link will expire in approximately {{ expiry_seconds }} seconds.
+
+If you didn't sign up, you can ignore this message.
+
+— iNNiT Team
