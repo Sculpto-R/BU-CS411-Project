@@ -1,18 +1,11 @@
 {% extends "base.html" %}
 {% block content %}
-    <h2>Login</h2>
+    <h1>Login</h1>
     <form method="post">
         {% csrf_token %}
-        {{ form.non_field_errors }}
-        <p>
-        {{ form.username.label_tag }}<br>
-        {{ form.username }}
-        </p>
-        <p>
-        {{ form.password.label_tag }}<br>
-        {{ form.password }}
-        </p>
+        {{ form.as_p }}
         <button type="submit">Login</button>
+        <input type="hidden" name="next" value="{{ next }}">
     </form>
     <p>No account? <a href="{% url 'accounts:register' %}">Register</a></p>
 {% endblock %}

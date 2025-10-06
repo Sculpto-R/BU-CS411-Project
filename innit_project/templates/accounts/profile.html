@@ -1,29 +1,14 @@
 {% extends "base.html" %}
 {% block content %}
-    <h2>Your Profile</h2>
-    <div style="display:flex; gap:1rem; align-items:flex-start;">
-        <div>
-        {% if profile.avatar %}
-            <img src="{{ profile.avatar.url }}" alt="avatar" class="avatar">
-        {% else %}
-            <div style="width:80px; height:80px; background:#eee; border-radius:50%; display:flex; align-items:center; justify-content:center;">No photo</div>
-        {% endif %}
-        </div>
-        <div style="flex:1;">
-        <form method="post" enctype="multipart/form-data">
-            {% csrf_token %}
-            {{ form.as_p }}
-            <p>
-            <label>Current preferences:</label><br>
-            {% if profile.preferences %}
-                {{ profile.preferences|join:", " }}
-            {% else %}
-                <em>None set</em>
-            {% endif %}
-            </p>
-            <button type="submit">Save profile</button>
-        </form>
-        <p style="margin-top:0.5rem"><a href="{% url 'home' %}">Back to home</a></p>
-        </div>
-    </div>
+    <h1>Profile</h1>
+    <p><strong>Username:</strong> {{ request.user.username }}</p>
+    <p><strong>Email:</strong> {{ request.user.email }}</p>
+    <p><strong>Date of birth:</strong> {{ profile.date_of_birth|default:"(not set)" }}</p>
+    <p><strong>Age verified:</strong> {{ profile.age_verified }}</p>
+    {% if profile.age %}
+        <p><strong>Age:</strong> {{ profile.age }}</p>
+    {% endif %}
+    {% if not profile.age_verified %}
+        <p><a href="{% url 'accounts:verify_age' %}">Verify your age</a></p>
+    {% endif %}
 {% endblock %}
