@@ -5,7 +5,7 @@ from pathlib import Path
 _RULES_CACHE = None
 
 #load_keyword_rules() and suggest_tags(text) power the AI keyword filtering 
-#Weight ranks events by relevance, filters out weak tags, and combines scores from genres, locations, and keywords
+#Weight ranks events by relevance, filters out weak signals, and combines scores from genres, locations, and keywords
 #Weight helps AI understand which keywords matter more when tagging a post
 
 def load_keyword_rules():
@@ -34,7 +34,9 @@ def load_keyword_rules():
     return _RULES_CACHE
 
 def suggest_tags(text): 
-    "Function takes text (captions), goes through keyword rules (JSON file to find which tags apply) and returns a list of (tag, score) by matching regex rules in the caption text."
+    "Function takes text (website event information), goes through keyword rules (JSON file to "
+    "find which tags apply) and returns a list of (tag, score) by matching regex rules in the caption text."
+   
     "Allows system to understand what each social media post is about -> Converts human text to data"
 
     if not text:
@@ -57,13 +59,82 @@ def suggest_tags(text):
     return sorted(tag_scores.items(), key=lambda kv: kv[1], reverse=True)
 
 def extract_price_and_age(text):
-    return 
+    "Extracts price and age information from website event information."
+
+    #if there is no text
+    if text == '':
+        return {"price_min": None, "price_max": None, "age": None}
+
+    words = text.split() #splits event information (seperates by words)
+    prices = [] 
+    age = None
+
+    for word in words:
+        w = word.lower()
+
+        #Price Checker
+        if "£" in w:
+            num = ""
+           
+            for ch in w:
+                if ch.isdigit() or ch == ".":
+                    num += ch
+            
+            if num:
+                prices.append(float(num))
+
+        #British monetary slang
+        elif "fiver" in w:
+            prices.append(5.0)
+        
+        elif "tenner" in w:
+            prices.append(10.0)
+        
+        elif "free" in w:
+            prices.append(0.0)
+        
+        #Age checker
+        if "18+" in w:
+            age = "18+"
+        
+        elif "21+" in w:
+            age = "21+"
+    
+    #Min and max price checker if more than one price is listed
+    if prices != []:
+        price_min = min(prices)
+        price_max = max(prices)
+    
+    else:
+        price_min = None
+        price_max = None
+   
+    return {"price_min": price_min, "price_max": price_max, "age": age}
 
 def extract_datetime(text, tz="Europe/London"):
+    "Extracts date and time information from website event information."
+
+
     return 
 
 def extract_venue(text):
-    return 
+    "Extracts venue(address) information from website event information."
+
+    if text == '':
+        return {"postcode": None, "area": None, "name": None}
+    
+    words = text.split()
+    postcode = None
+    area = None
+    name = None
+
+    londonAreas = ["dalston", "peckham", "brixton"] #have to update
+
+    for word in words:
+        w = word.lower()
+
+    return {"postcode": postcode, "area": area, "name": name}
+
 
 def score_candidate_quality(extractions):
     return 
