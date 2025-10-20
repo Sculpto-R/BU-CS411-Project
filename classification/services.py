@@ -5,7 +5,7 @@ from pathlib import Path
 _RULES_CACHE = None
 
 #load_keyword_rules() and suggest_tags(text) power the AI keyword filtering 
-#Weight ranks events by relevance, filters out weak signals, and combines scores from genres, locations, and keywords
+#Weight ranks events by relevance, filters out weak tags, and combines scores from genres, locations, and keywords
 #Weight helps AI understand which keywords matter more when tagging a post
 
 def load_keyword_rules():
