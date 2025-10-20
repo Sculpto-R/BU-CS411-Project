@@ -34,9 +34,7 @@ def load_keyword_rules():
     return _RULES_CACHE
 
 def suggest_tags(text): 
-    "Function takes text (captions), goes through keyword rules (JSON file to "
-    "find which tags apply) and returns a list of (tag, score) by matching regex rules in the caption text."
-   
+    "Function takes text (captions), goes through keyword rules (JSON file to find which tags apply) and returns a list of (tag, score) by matching regex rules in the caption text."
     "Allows system to understand what each social media post is about -> Converts human text to data"
 
     if not text:
