@@ -1,14 +1,17 @@
 {% extends "base.html" %}
 {% block content %}
-    <h1>Profile</h1>
-    <p><strong>Username:</strong> {{ request.user.username }}</p>
-    <p><strong>Email:</strong> {{ request.user.email }}</p>
-    <p><strong>Date of birth:</strong> {{ profile.date_of_birth|default:"(not set)" }}</p>
-    <p><strong>Age verified:</strong> {{ profile.age_verified }}</p>
-    {% if profile.age %}
-        <p><strong>Age:</strong> {{ profile.age }}</p>
-    {% endif %}
+    <h1>Your Profile</h1>
+    <ul>
+        <li><strong>Username:</strong> {{ user.username }}</li>
+        <li><strong>Email:</strong> {{ user.email }}</li>
+        <li><strong>Date of Birth:</strong> {{ profile.date_of_birth|default:"Not provided" }}</li>
+        <li><strong>Age Verified:</strong> {{ profile.age_verified|yesno:"Yes,No" }}</li>
+    </ul>
+
     {% if not profile.age_verified %}
-        <p><a href="{% url 'accounts:verify_age' %}">Verify your age</a></p>
+        <p style="color:red;">Your age is not yet verified.</p>
+        <a href="{% url 'accounts:verify_age' %}">
+        <button>Verify Age</button>
+        </a>
     {% endif %}
 {% endblock %}

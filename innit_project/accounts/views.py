@@ -1,3 +1,4 @@
+# Last change: 10.20.25
 from django.shortcuts import render, redirect
 from django.urls import reverse_lazy
 from django.contrib.auth.views import LoginView, LogoutView
@@ -10,14 +11,40 @@ from django.conf import settings
 from .forms import RegistrationForm, AgeVerificationForm
 from .models import Profile
 
+
+def landing_page(request):
+    """Public landing page for guests."""
+    if request.user.is_authenticated:
+        return redirect('home')
+    return render(request, 'landing.html')
+
+@login_required
+def home_screen(request):
+    """Main home screen for logged-in users."""
+    return render(request, 'home.html')
+
+
 class CustomLoginView(LoginView):
     template_name = 'accounts/login.html'
+    redirect_authenticated_user = True  # don't let logged-in users revisit login
+    def form_invalid(self, form):
+        messages.error(self.request, "Invalid username or password. Please try again.")
+        return super().form_invalid(form)
 
 class CustomLogoutView(LogoutView):
-    next_page = reverse_lazy('accounts:login')
+    """Logout view that accepts GET (for simplicity) and redirects to landing."""
+    next_page = reverse_lazy('landing')
+
+    def get(self, request, *args, **kwargs):
+        # Handle GET logout as POST for smoother UX
+        return self.post(request, *args, **kwargs)
+
 
 def register(request):
-    """Register a new user and set DOB + age_verified=True (since we validate DOB)."""
+    """User registration with age check + email notification."""
+    if request.user.is_authenticated:
+        return redirect('home')
+
     if request.method == 'POST':
         form = RegistrationForm(request.POST)
         if form.is_valid():
@@ -25,36 +52,35 @@ def register(request):
             user.email = form.cleaned_data['email']
             user.save()
 
-            # profile is auto-created via signal; update it
+            # profile is auto-created via signal
             profile, _ = Profile.objects.get_or_create(user=user)
             profile.date_of_birth = form.cleaned_data['date_of_birth']
             profile.age_verified = True
             profile.save()
 
-            # Send welcome email (console backend in dev)
+            # Send welcome email
             subject = "Welcome to iNNiT"
-            plain_message = (
-                f"Hi {user.username},\n\n"
-                "Thanks for registering at iNNiT. We're excited to have you on board!"
-            )
-            send_mail(subject, plain_message, settings.DEFAULT_FROM_EMAIL, [user.email], fail_silently=False)
+            body = f"Hi {user.username},\n\nWelcome to iNNiT!"
+            send_mail(subject, body, settings.DEFAULT_FROM_EMAIL, [user.email])
 
-            # log user in
             login(request, user)
-            messages.success(request, "Registration successful. Welcome!")
-            return redirect('accounts:profile')
+            messages.success(request, "Registration successful. Welcome aboard!")
+            return redirect('home')
     else:
         form = RegistrationForm()
+
     return render(request, 'accounts/register.html', {'form': form})
+
 
 @login_required
 def profile(request):
     profile = getattr(request.user, 'profile', None)
     return render(request, 'accounts/profile.html', {'profile': profile})
 
+
 @login_required
 def verify_age(request):
-    """A page allowing existing users who didn't verify to provide DOB and become age_verified."""
+    """Existing user can verify age manually if missing."""
     profile = getattr(request.user, 'profile', None)
     if request.method == 'POST':
         form = AgeVerificationForm(request.POST)
@@ -63,11 +89,8 @@ def verify_age(request):
             profile.date_of_birth = dob
             profile.age_verified = True
             profile.save()
-            messages.success(request, "Thank you — your age has been verified.")
+            messages.success(request, "Your age has been verified.")
             return redirect('accounts:profile')
     else:
-        initial = {}
-        if profile and profile.date_of_birth:
-            initial['date_of_birth'] = profile.date_of_birth
-        form = AgeVerificationForm(initial=initial)
+        form = AgeVerificationForm(initial={'date_of_birth': profile.date_of_birth} if profile.date_of_birth else None)
     return render(request, 'accounts/verify_age.html', {'form': form})

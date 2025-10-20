@@ -104,9 +104,9 @@ AUTH_PASSWORD_VALIDATORS = [
 
 
 # Redirects + login
-LOGIN_REDIRECT_URL = '/accounts/profile/'
+LOGIN_REDIRECT_URL = '/home/'
 LOGIN_URL = '/accounts/login/'
-LOGOUT_REDIRECT_URL = '/accounts/login/'
+LOGOUT_REDIRECT_URL = 'landing'
 
 # Email - development (console)
 EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'

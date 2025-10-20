@@ -4,7 +4,7 @@ from django.contrib.auth.models import User
 from datetime import date
 
 class RegistrationForm(UserCreationForm):
-    email = forms.EmailField(required=True, help_text="Required. We'll send notifications here.")
+    email = forms.EmailField(required=True, help_text="* We'll send notifications here.")
     date_of_birth = forms.DateField(
         required=True,
         widget=forms.DateInput(attrs={'type': 'date'}),

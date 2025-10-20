@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Home</title>
+</head>
+<body>
+    {% extends "base.html" %}
+    {% block content %}
+        <h1>iNNiT Home Screen</h1>
+        <p>Welcome back, {{ user.username }}!</p>
+        <p>
+            <a href="{% url 'accounts:profile' %}">View Profile</a> |
+            <form action="{% url 'accounts:logout' %}" method="post" style="display:inline;">
+                {% csrf_token %}
+                <button type="submit"
+                        style="background:none;border:none;color:#00b4d8;cursor:pointer;">
+                Logout
+                </button>
+            </form>
+        </p>
+    {% endblock %}
+</body>
+</html>

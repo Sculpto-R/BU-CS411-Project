@@ -1,10 +1,14 @@
 {% extends "base.html" %}
 {% block content %}
-    <h1>Register</h1>
+    <h1>Create an iNNiT Account</h1>
+    <p>Fill in the form below to join. You must be at least 18 years old.</p>
+
     <form method="post">
         {% csrf_token %}
         {{ form.as_p }}
-        <button type="submit">Create account</button>
+        <button type="submit">Register</button>
     </form>
-    <p>Already have an account? <a href="{% url 'accounts:login' %}">Login</a></p>
+
+    <p style="margin-top:1rem;">Already have an account? 
+        <a href="{% url 'accounts:login' %}">Login here</a>.</p>
 {% endblock %}
