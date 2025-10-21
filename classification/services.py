@@ -66,14 +66,17 @@ def extract_price_and_age(text):
         return {"price_min": None, "price_max": None, "age": None}
 
     words = text.split() #splits event information (seperates by words)
-    prices = [] 
-    age = None
+    prices = [] #initialize list that stores all prices listed for event
+    age = None #initialize age variable that will store age requirement for event
 
+    #loop reads event information
     for word in words:
         w = word.lower()
 
         #Price Checker
         if "£" in w:
+
+            #builds event price
             num = ""
            
             for ch in w:
@@ -94,10 +97,10 @@ def extract_price_and_age(text):
             prices.append(0.0)
         
         #Age checker
-        if "18+" in w:
+        if "18+" in lowercaseWords:
             age = "18+"
         
-        elif "21+" in w:
+        elif "21+" in lowercaseWords:
             age = "21+"
     
     #Min and max price checker if more than one price is listed
@@ -120,10 +123,11 @@ def extract_datetime(text, tz="Europe/London"):
 def extract_venue(text):
     "Extracts venue(address) information from website event information."
 
+    #if there is no text
     if text == '':
         return {"postcode": None, "area": None, "name": None}
-    
-    words = text.split()
+
+    words = text.split() #splits event information (seperates by words)
     postcode = None
     area = None
     name = None
