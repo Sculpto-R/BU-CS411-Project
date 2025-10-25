@@ -71,7 +71,7 @@ def extract_price_and_age(text):
 
     #loop reads event information
     for word in words:
-        w = word.lower()
+        lowercaseWords = word.lower()
 
         #Price Checker
         if "£" in w:
