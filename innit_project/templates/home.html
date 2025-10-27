@@ -1,26 +1,56 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Home</title>
-</head>
-<body>
-    {% extends "base.html" %}
-    {% block content %}
-        <h1>iNNiT Home Screen</h1>
-        <p>Welcome back, {{ user.username }}!</p>
-        <p>
-            <a href="{% url 'accounts:profile' %}">View Profile</a> |
-            <form action="{% url 'accounts:logout' %}" method="post" style="display:inline;">
-                {% csrf_token %}
-                <button type="submit"
-                        style="background:none;border:none;color:#00b4d8;cursor:pointer;">
-                Logout
-                </button>
-            </form>
-        </p>
-    {% endblock %}
-</body>
-</html>
+{% extends "base.html" %}
+{% block main_class %}fullscreen{% endblock %}
+{% block content %}
+<div id="map"></div>
+
+<link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+
+<style>
+    html, body, #map {
+        height: 100%;
+        width: 100%;
+        margin: 0;
+        padding: 0;
+    }
+    #map {
+        position: fixed;
+        top: 0;
+        left: 0;
+        z-index: -1; /* ensures header & UI remain interactive */
+    }
+</style>
+
+<script>
+    const map = L.map('map', {
+        zoomControl: true,
+        minZoom: 11,
+        maxZoom: 16,
+    }).setView([51.5074, -0.1278], 12); // London center
+
+    const londonBounds = L.latLngBounds(
+        [51.28, -0.5103], // SW
+        [51.686, 0.334]   // NE
+    );
+    map.setMaxBounds(londonBounds);
+    map.on('drag', function() { map.panInsideBounds(londonBounds, { animate: true }); });
+
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        maxZoom: 16,
+        minZoom: 11,
+        attribution: '&copy; OpenStreetMap contributors'
+    }).addTo(map);
+
+    const events = [
+        { name: 'Camden Concert', coords: [51.54, -0.14] },
+        { name: 'Shoreditch Club Night', coords: [51.526, -0.078] },
+        { name: 'Brixton Street Festival', coords: [51.46, -0.115] },
+    ];
+
+    events.forEach(evt => {
+        L.marker(evt.coords)
+        .addTo(map)
+        .bindPopup(`<strong>${evt.name}</strong>`);
+    });
+</script>
+{% endblock %}

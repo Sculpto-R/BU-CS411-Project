@@ -1,17 +1,60 @@
 {% extends "base.html" %}
 {% block content %}
-    <h1>Your Profile</h1>
-    <ul>
-        <li><strong>Username:</strong> {{ user.username }}</li>
-        <li><strong>Email:</strong> {{ user.email }}</li>
-        <li><strong>Date of Birth:</strong> {{ profile.date_of_birth|default:"Not provided" }}</li>
-        <li><strong>Age Verified:</strong> {{ profile.age_verified|yesno:"Yes,No" }}</li>
-    </ul>
+<h1>My Profile</h1>
 
-    {% if not profile.age_verified %}
-        <p style="color:red;">Your age is not yet verified.</p>
-        <a href="{% url 'accounts:verify_age' %}">
-        <button>Verify Age</button>
-        </a>
-    {% endif %}
+<!-- Profile Edit Section -->
+<h2>Account Information</h2>
+<form method="post">
+    {% csrf_token %}
+    {{ form.non_field_errors }}
+
+    <div>
+        {{ form.first_name.label_tag }}<br>
+        {{ form.first_name }}
+    </div>
+
+    <div>
+        {{ form.last_name.label_tag }}<br>
+        {{ form.last_name }}
+    </div>
+
+    <div>
+        {{ form.email.label_tag }}<br>
+        {{ form.email }}
+    </div>
+
+    <div>
+        {{ form.date_of_birth.label_tag }}<br>
+        {{ form.date_of_birth }}
+        <small>{{ form.date_of_birth.help_text }}</small>
+    </div>
+
+    <h3>Preferences</h3>
+    <fieldset>
+        {{ form.presets }}
+    </fieldset>
+
+    <div style="margin-top: 1rem;">
+        {{ form.custom_preferences.label_tag }}<br>
+        {{ form.custom_preferences }}
+        <small>{{ form.custom_preferences.help_text }}</small>
+    </div>
+
+    <button type="submit" name="save_profile">Save Changes</button>
+    </form>
+
+    <hr>
+
+    <!-- Password Change Section -->
+    <h2>Change Password</h2>
+    <form method="post">
+    {% csrf_token %}
+    {{ pwd_form.non_field_errors }}
+
+    <div>{{ pwd_form.old_password.label_tag }}<br>{{ pwd_form.old_password }}</div>
+    <div>{{ pwd_form.new_password1.label_tag }}<br>{{ pwd_form.new_password1 }}</div>
+    <div>{{ pwd_form.new_password2.label_tag }}<br>{{ pwd_form.new_password2 }}</div>
+
+    <button type="submit" name="change_password">Change Password</button>
+</form>
 {% endblock %}
