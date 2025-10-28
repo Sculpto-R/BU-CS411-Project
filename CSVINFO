@@ -1,0 +1,4 @@
+| File                          | Description                                                                                                                     |
+| ----------------------------- | ------------------------------------------------------------------------------------------------------------------------------- |
+| `multi_site_event_scraper.py` | Python script that scrapes event listings from multiple venue sites and outputs a structured CSV.                               |
+| `events_out.csv`              | **Authoritative event dataset** maintained by Anya. Always pull the latest version from Git before running any functions on it. |
