@@ -125,16 +125,27 @@ class ProfileEditForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         user = kwargs.pop('user', None)
         super().__init__(*args, **kwargs)
+
         if user:
             self.fields['first_name'].initial = user.first_name
             self.fields['last_name'].initial = user.last_name
             self.fields['email'].initial = user.email
 
-            # prefill preferences
             profile = getattr(user, 'profile', None)
             if profile:
-                self.fields['presets'].initial = profile.presets
-                self.fields['custom_preferences'].initial = ', '.join(profile.custom_preferences or [])
+                self.fields['presets'].initial = profile.presets or []
+                # Safely handle any stored format of custom_preferences
+                raw_custom = profile.custom_preferences
+                if isinstance(raw_custom, list):
+                    self.fields['custom_preferences'].initial = ', '.join(raw_custom)
+                elif isinstance(raw_custom, str):
+                    # clean stringified list like "['a','b']" or '["a", "b"]'
+                    cleaned = raw_custom.strip("[]").replace("'", "").replace('"', '')
+                    self.fields['custom_preferences'].initial = ', '.join(
+                        [p.strip() for p in cleaned.split(',') if p.strip()]
+                    )
+                else:
+                    self.fields['custom_preferences'].initial = ''
 
     def clean_date_of_birth(self):
         from datetime import date
@@ -148,16 +159,22 @@ class ProfileEditForm(forms.ModelForm):
         return dob
 
     def clean_custom_preferences(self):
-        text = self.cleaned_data.get('custom_preferences', '')
-        if not text:
+        raw = self.cleaned_data.get('custom_preferences', '')
+        if not raw:
             return []
-        prefs = [p.strip() for p in text.split(',') if p.strip()]
+
+        # Remove stray brackets or quotes from stored values
+        raw = raw.strip("[]").replace("'", "").replace('"', '')
+        prefs = [p.strip() for p in raw.split(',') if p.strip()]
+        prefs = list(dict.fromkeys(prefs))  # remove duplicates, preserve order
+
         if len(prefs) > 3:
             raise forms.ValidationError("Please limit to 3 custom preferences.")
         return prefs
 
     def save(self, user=None, commit=True):
         profile = super().save(commit=False)
+
         if user:
             user.first_name = self.cleaned_data['first_name']
             user.last_name = self.cleaned_data['last_name']
