@@ -1,0 +1,7 @@
+Django>=5.0
+requests
+beautifulsoup4
+lxml
+gunicorn
+psycopg2-binary
+whitenoise

@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>Edit Date of Birth</h1>
+<form method="post">
+  {% csrf_token %}
+  {{ form.non_field_errors }}
+  <div>
+    {{ form.date_of_birth.label_tag }}
+    {{ form.date_of_birth }}
+    <small class="small">{{ form.date_of_birth.help_text }}</small>
+  </div>
+  <button type="submit" class="primary-button">Save DOB</button>
+  <a href="{% url 'accounts:profile' %}"><button type="button" class="primary-button">Cancel</button></a>
+</form>
+{% endblock %}

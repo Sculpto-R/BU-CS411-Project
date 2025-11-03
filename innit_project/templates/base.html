@@ -2,227 +2,272 @@
 <!doctype html>
 <html lang="en">
 <head>
-    <meta charset="utf-8">
-    <title>iNNiT</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="utf-8">
+  <title>iNNiT</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <!-- Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Bitcount+Grid+Single:wght@200&family=Roboto&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Bitcount+Grid+Single:wght@3k00&family=Roboto&display=swap" rel="stylesheet">
 
-    <style>
-        body {
-            margin: 0;
-            padding: 0;
-            font-family: 'Segoe UI', Roboto, Arial, sans-serif;
-            background-color: #f3eada;
-            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='42' height='58' viewBox='0 0 42 58'%3E%3Cg fill='%239c8761' fill-opacity='0.19'%3E%3Cpath fill-rule='evenodd' d='M12 18h12v18h6v4H18V22h-6v-4zm-6-2v-4H0V0h36v6h6v36h-6v4h6v12H6v-6H0V16h6zM34 2H2v8h24v24h8V2zM6 8a2 2 0 1 0 0-4 2 2 0 0 0 0 4zm8 0a2 2 0 1 0 0-4 2 2 0 0 0 0 4zm8 0a2 2 0 1 0 0-4 2 2 0 0 0 0 4zm8 0a2 2 0 1 0 0-4 2 2 0 0 0 0 4zm0 8a2 2 0 1 0 0-4 2 2 0 0 0 0 4zm0 8a2 2 0 1 0 0-4 2 2 0 0 0 0 4zm0 8a2 2 0 1 0 0-4 2 2 0 0 0 0 4zM2 50h32v-8H10V18H2v32zm28-6a2 2 0 1 0 0 4 2 2 0 0 0 0-4zm-8 0a2 2 0 1 0 0 4 2 2 0 0 0 0-4zm-8 0a2 2 0 1 0 0 4 2 2 0 0 0 0-4zm-8 0a2 2 0 1 0 0 4 2 2 0 0 0 0-4zm0-8a2 2 0 1 0 0 4 2 2 0 0 0 0-4zm0-8a2 2 0 1 0 0 4 2 2 0 0 0 0-4zm0-8a2 2 0 1 0 0 4 2 2 0 0 0 0-4z'/%3E%3C/g%3E%3C/svg%3E");
-        }
-        
-        header {
-            position: fixed;
-            top: 0;
-            width: 100%;
-            height: 70px;
-            display: grid;
-            grid-template-columns: 1fr auto 1fr;
-            align-items: center;
-            backdrop-filter: blur(12px) saturate(180%);
-            background-color: rgba(0, 0, 0, 0.82);
-            border-bottom: 1px solid rgba(255, 255, 255, 0.3);
-            z-index: 1000;
-            padding: 0 2rem;
-        }
+  <style>
+    :root{
+      --bg:#f3eada;
+      --panel-bg: rgba(255,255,255,0.9);
+      --accent:#7db8a8;
+      --accent-hover:#f96e2a;
+      --text:#111;
+      --header-bg: rgba(0,0,0,0.82);
+      --tooltip-bg:#000;
+    }
+    /* Dark theme overrides */
+    body.dark {
+      --bg: #0f1720;
+      --panel-bg: rgba(8,11,15,0.7);
+      --accent: #0ea5a4;
+      --accent-hover: #f97316;
+      --text: #fff;
+      --header-bg: rgba(6,8,10,0.9);
+      --tooltip-bg: rgba(255,255,255,0.07);
+    }
 
-        .header-left {
-            display: flex;
-            align-items: center;
-            gap: 1.5rem;
-        }
+    html,body{height:100%}
+    body{
+      margin:0;
+      padding:0;
+      font-family: 'Roboto', 'Segoe UI', Arial, sans-serif;
+      background-color: var(--bg);
+      color: var(--text);
+      line-height:1.6;
+      -webkit-font-smoothing:antialiased;
+      -moz-osx-font-smoothing:grayscale;
+    }
 
-        .header-center {
-            position: absolute;
-            left: 50%;
-            transform: translateX(-65%);
-            color: #fff;
-            font-family: 'Bitcount Grid Single', sans-serif;
-            font-size: 2rem;
-            letter-spacing: 0px;
-            text-shadow: 0 0 5px rgba(0,0,0,0.3);
-        }
+    header{
+      position:fixed;
+      top:0;
+      left:0;
+      right:0;
+      height:68px;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:1rem;
+      padding:0 1rem;
+      background: var(--header-bg);
+      backdrop-filter: blur(10px) saturate(150%);
+      z-index:1000;
+      box-sizing:border-box;
+    }
 
-        header a, header button {
-            position: relative;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            width: 42px;
-            height: 42px;
-            background: #7db8a8;
-            border-radius: 50%;
-            border: none;
-            cursor: pointer;
-            transition: background 0.3s ease;
-        }
+    button {
+        background-color: #7db8a8;
+        color: white;
+        border: none;
+        padding: 0.6rem 1.2rem;
+        border-radius: 5px;
+        cursor: pointer;
+        font-weight: bold;
+        font-size: 0.95rem;
+        margin: 0.3rem 0.2rem;
+        transition: background 0.3s ease, transform 0.2s ease;
+    }
 
-        header a:hover, header button:hover {
-            background: #000000;
-        }
+    button:hover {
+        background-color: #5c948a;
+        transform: scale(1.03);
+    }
 
-        /* SVG icons */
-        header svg {
-            width: 22px;
-            height: 22px;
-            fill: #fff;
-        }
+    button:active {
+        background-color: #47766f;
+        transform: scale(0.98);
+    }
 
-        button { 
-            background: #7db8a8; 
-            color: white; 
-            border: none; 
-            padding: 0.6rem 1.2rem; 
-            border-radius: 5px; 
-            cursor: pointer; 
-            transition: background 0.3s ease;
-        }
+    /* Fix for SVG scaling for icon buttons */
+    .icon-btn {
+        padding: 0 !important;
+        width: 42px;
+        height: 42px;
+        min-width: 42px;
+        min-height: 42px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+    }
 
-        button:hover {
-            background: #000000;
-        }
+    .icon-btn svg {
+        width: 22px;
+        height: 22px;
+        flex-shrink: 0;
+        transform: none !important;
+    }
 
-        /* Tooltip */
-        header a::after, header button::after {
-            content: attr(data-tooltip);
-            position: absolute;
-            bottom: -0px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: #000;
-            color: #fff;
-            font-size: 0.75rem;
-            padding: 4px 8px;
-            border-radius: 4px;
-            opacity: 0;
-            pointer-events: none;
-            transition: opacity 0.3s, bottom 0.3s;
-            white-space: nowrap;
-        }
+    .header-left-row{
+      display:flex;
+      align-items:center;
+      gap:1rem;
+    }
 
-        header a:hover::after, header button:hover::after {
-            opacity: 1;
-            bottom: -45px;
-        }
+    /* iNNiT Title */
+    .brand {
+      display:flex;
+      align-items:center;
+      gap:.75rem;
+      font-family:'Bitcount Grid Single', sans-serif;
+      font-size:2rem;
+      color: #fff;
+      margin-left:.25rem;
+    }
+    
+    /* small icon buttons group on right */
+    .header-actions{
+      display:flex;
+      align-items:center;
+      gap:.6rem;
+    }
 
-        main {
-            line-height: 1.6;
-            padding: 6rem 2rem 2rem;
-            max-width: 800px;
-            margin: 0 auto;
-            background: rgba(255, 255, 255, 0.8);
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-            border-radius: 10px;
-            position: relative;
-            z-index: 1;
-        }
+    /* icon circle */
+    .icon-btn {
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      width:42px;
+      height:42px;
+      border-radius:50%;
+      background: var(--accent);
+      color: #fff;
+      border: none;
+      cursor:pointer;
+      transition: background .18s ease, transform .08s;
+      position:relative;
+    }
+    .icon-btn:hover{ background: var(--accent-hover); transform: translateY(-1px); }
 
-        main.fullscreen {
-            padding: 0;
-            max-width: none;
-            background: transparent;
-            box-shadow: none;
-            border-radius: 0;
-        }
+    /* ensure inline svg uses currentColor */
+    .icon-btn svg { width:20px; height:20px; fill: currentColor; pointer-events:none; }
 
-        .flash {
-            background: #e0f7fa;
-            border-left: 4px solid #7db8a8;
-            padding: 0.5rem 1rem;
-            margin-bottom: 1rem;
-            border-radius: 4px;
-        }
+    /* tooltip */
+    .icon-btn[data-tooltip]::after{
+      content: attr(data-tooltip);
+      position: absolute;
+      left:50%;
+      transform: translateX(-50%);
+      bottom: -40px;
+      white-space:nowrap;
+      background: var(--tooltip-bg);
+      color: #fff;
+      padding:6px 8px;
+      font-size:12px;
+      border-radius:6px;
+      opacity:0;
+      pointer-events:none;
+      transition:opacity .18s, transform .18s;
+      transform-origin: center;
+    }
+    .icon-btn:hover::after{ opacity:1; transform: translateX(-50%) translateY(-6px); }
 
-        footer {
-            text-align: center;
-            color: #fff;
-            padding: 1rem;
-            font-size: 0.9rem;
-            position: relative;
-            z-index: 1;
-            text-shadow: 0 0 8px rgba(0,0,0,0.9);
-        }
-    </style>
+    /* main area */
+    main{ padding:86px 1.25rem 2.5rem; max-width:1100px; margin:0 auto; box-sizing:border-box; min-height:calc(100vh - 160px); }
+    main.panel { background: var(--panel-bg); border-radius:10px; padding:2rem; box-shadow: 0 6px 24px rgba(2,6,23,0.08); }
+
+    /* small global spacing improvements */
+    h1,h2,h3{ margin-top:1.25rem; margin-bottom:.6rem; }
+    form > div{ margin-bottom:1rem; }
+    label{ display:block; margin-bottom:.35rem; font-weight:600; color:var(--text); }
+    input[type="text"], input[type="email"], input[type="date"], textarea, select {
+      width:100%;
+      padding:.6rem .75rem;
+      border-radius:6px;
+      border:1px solid rgba(0,0,0,0.12);
+      box-sizing:border-box;
+      background: #fff;
+      color:var(--text);
+    }
+    .small { font-size:.9rem; color: #666; }
+
+    footer{ text-align:center; padding:1.2rem 0; color:var(--text); opacity:.9; margin-top:2rem; }
+  </style>
 </head>
 <body>
-    <header>
-        <div class="header-left">
-        {% if user.is_authenticated %}
-            <a href="{% url 'home' %}" data-tooltip="Home">
-                <!-- Home -->
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16">
-                    <path fill-rule="evenodd" d="M3.1 11.2a.5.5 0 0 1 .4-.2H6a.5.5 0 0 1 0 1H3.75L1.5 15h13l-2.25-3H10a.5.5 0 0 1 0-1h2.5a.5.5 0 0 1 .4.2l3 4a.5.5 0 0 1-.4.8H.5a.5.5 0 0 1-.4-.8z"/>
-                    <path fill-rule="evenodd" d="M4 4a4 4 0 1 1 4.5 3.969V13.5a.5.5 0 0 1-1 0V7.97A4 4 0 0 1 4 3.999z"/>
-                </svg>
-            </a>
+  <header>
+    <div class="header-left-row" style="align-items:center;">
+      <div class="brand">iNNiT</div>
 
-            <a href="{% url 'accounts:profile' %}" data-tooltip="Profile">
-                <!-- Profile -->
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16">
-                    <path d="M1.5 1a.5.5 0 0 0-.5.5v3a.5.5 0 0 1-1 0v-3A1.5 1.5 0 0 1 1.5 0h3a.5.5 0 0 1 0 1zM11 .5a.5.5 0 0 1 .5-.5h3A1.5 1.5 0 0 1 16 1.5v3a.5.5 0 0 1-1 0v-3a.5.5 0 0 0-.5-.5h-3a.5.5 0 0 1-.5-.5M.5 11a.5.5 0 0 1 .5.5v3a.5.5 0 0 0 .5.5h3a.5.5 0 0 1 0 1h-3A1.5 1.5 0 0 1 0 14.5v-3a.5.5 0 0 1 .5-.5m15 0a.5.5 0 0 1 .5.5v3a1.5 1.5 0 0 1-1.5 1.5h-3a.5.5 0 0 1 0-1h3a.5.5 0 0 0 .5-.5v-3a.5.5 0 0 1 .5-.5"/>
-                    <path d="M3 14s-1 0-1-1 1-4 6-4 6 3 6 4-1 1-1 1zm8-9a3 3 0 1 1-6 0 3 3 0 0 1 6 0"/>
-                </svg>
-            </a>
+      <a class="icon-btn" href="#" data-tooltip="GitHub" id="github-link" aria-label="GitHub (link)">
+        <svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+          <path fill-rule="evenodd" d="M12.006 2a9.847 9.847 0 0 0-6.484 2.44 10.32 10.32 0 0 0-3.393 6.17 10.48 10.48 0 0 0 1.317 6.955 10.045 10.045 0 0 0 5.4 4.418c.504.095.683-.223.683-.494 0-.245-.01-1.052-.014-1.908-2.78.62-3.366-1.21-3.366-1.21a2.711 2.711 0 0 0-1.11-1.5c-.907-.637.07-.621.07-.621.317.044.62.163.885.346.266.183.487.426.647.71.135.253.318.476.538.655a2.079 2.079 0 0 0 2.37.196c.045-.52.27-1.006.635-1.37-2.219-.259-4.554-1.138-4.554-5.07a4.022 4.022 0 0 1 1.031-2.75 3.77 3.77 0 0 1 .096-2.713s.839-.275 2.749 1.05a9.26 9.26 0 0 1 5.004 0c1.906-1.325 2.74-1.05 2.74-1.05.37.858.406 1.828.101 2.713a4.017 4.017 0 0 1 1.029 2.75c0 3.939-2.339 4.805-4.564 5.058a2.471 2.471 0 0 1 .679 1.897c0 1.372-.012 2.477-.012 2.814 0 .272.18.592.687.492a10.05 10.05 0 0 0 5.388-4.421 10.473 10.473 0 0 0 1.313-6.948 10.32 10.32 0 0 0-3.39-6.165A9.847 9.847 0 0 0 12.007 2Z" clip-rule="evenodd"/>
+        </svg>
+      </a>
+    </div>
 
-            <form action="{% url 'accounts:logout' %}" method="post" style="display:inline;">
-                {% csrf_token %}
-                <button type="submit" data-tooltip="Logout">
-                    <!-- Logout -->
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 16 16">
-                        <path d="M1.5 15a.5.5 0 0 0 0 1h13a.5.5 0 0 0 0-1H13V2.5A1.5 1.5 0 0 0 11.5 1H11V.5a.5.5 0 0 0-.57-.495l-7 1A.5.5 0 0 0 3 1.5V15zM11 2h.5a.5.5 0 0 1 .5.5V15h-1zm-2.5 8c-.276 0-.5-.448-.5-1s.224-1 .5-1 .5.448.5 1-.224 1-.5 1"/>
-                    </svg>
-                </button>
-            </form>
+    <div class="header-actions" role="toolbar" aria-label="User actions">
+      <button id="theme-toggle" class="icon-btn" data-tooltip="Toggle Light/Dark" type="button" aria-pressed="false">
+        <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M6.76 4.84l-1.8-1.79L3.17 4.84l1.79 1.79 1.8-1.79zM1 13h3v-2H1v2zm10 8h2v-3h-2v3zm7.03-16.03l-1.79 1.79 1.79 1.79 1.79-1.79-1.79-1.79zM17.24 19.16l1.79 1.79 1.79-1.79-1.79-1.79-1.79 1.79zM20 13h3v-2h-3v2zM4.22 19.78L5.64 18l-1.42-1.42L2.8 18 4.22 19.78zM12 6a6 6 0 1 0 0 12A6 6 0 0 0 12 6z"/></svg>
+      </button>
 
-        {% else %}
-            <a href="{% url 'landing' %}" data-tooltip="Home">
-                <!-- Home -->
-                <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 16 16">
-                    <path fill-rule="evenodd" d="M3.1 11.2a.5.5 0 0 1 .4-.2H6a.5.5 0 0 1 0 1H3.75L1.5 15h13l-2.25-3H10a.5.5 0 0 1 0-1h2.5a.5.5 0 0 1 .4.2l3 4a.5.5 0 0 1-.4.8H.5a.5.5 0 0 1-.4-.8z"/>
-                    <path fill-rule="evenodd" d="M4 4a4 4 0 1 1 4.5 3.969V13.5a.5.5 0 0 1-1 0V7.97A4 4 0 0 1 4 3.999z"/>
-                </svg>
-            </a>
+      {% if user.is_authenticated %}
+        <a href="{% url 'home' %}" class="icon-btn" data-tooltip="Home" aria-label="Home">
+          <svg viewBox="0 0 16 16"><path fill-rule="evenodd" d="M3.1 11.2a.5.5 0 0 1 .4-.2H6a.5.5 0 0 1 0 1H3.75L1.5 15h13l-2.25-3H10a.5.5 0 0 1 0-1h2.5a.5.5 0 0 1 .4.2l3 4a.5.5 0 0 1-.4.8H.5a.5.5 0 0 1-.4-.8z"/><path fill-rule="evenodd" d="M4 4a4 4 0 1 1 4.5 3.969V13.5a.5.5 0 0 1-1 0V7.97A4 4 0 0 1 4 3.999z"/></svg>
+        </a>
 
-            <a href="{% url 'accounts:register_step1' %}" data-tooltip="Register">
-                <!-- Register -->
-                <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 16 16">
-                    <path d="M4 16s-1 0-1-1 1-4 5-4 5 3 5 4-1 1-1 1zm4-5.95a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5"/>
-                    <path d="M2 1a2 2 0 0 0-2 2v9.5A1.5 1.5 0 0 0 1.5 14h.653a5.4 5.4 0 0 1 1.066-2H1V3a1 1 0 0 1 1-1h12a1 1 0 0 1 1 1v9h-2.219c.554.654.89 1.373 1.066 2h.653a1.5 1.5 0 0 0 1.5-1.5V3a2 2 0 0 0-2-2z"/>
-                </svg>
-            </a>
+        <a href="{% url 'accounts:profile' %}" class="icon-btn" data-tooltip="Profile" aria-label="Profile">
+          <svg viewBox="0 0 16 16"><path d="M3 14s-1 0-1-1 1-4 6-4 6 3 6 4-1 1-1 1z"/><path d="M8 8a3 3 0 1 0 0-6 3 3 0 0 0 0 6z"/></svg>
+        </a>
 
-            <a href="{% url 'accounts:login' %}" data-tooltip="Login">
-                <!-- Login -->
-                <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 16 16">
-                    <path d="M12 1a1 1 0 0 1 1 1v13h1.5a.5.5 0 0 1 0 1h-13a.5.5 0 0 1 0-1H3V2a1 1 0 0 1 1-1zm-2 9a1 1 0 1 0 0-2 1 1 0 0 0 0 2"/>
-                </svg>
-            </a>
-        {% endif %}
-        </div>
+        <form action="{% url 'accounts:logout' %}" method="post" style="display:inline;">
+          {% csrf_token %}
+          <button type="submit" class="icon-btn" data-tooltip="Logout" aria-label="Logout">
+            <svg viewBox="0 0 16 16"><path d="M1.5 15a.5.5 0 0 0 0 1h13a.5.5 0 0 0 0-1H13V2.5A1.5 1.5 0 0 0 11.5 1H11V.5a.5.5 0 0 0-.57-.495l-7 1A.5.5 0 0 0 3 1.5V15zM11 2h.5a.5.5 0 0 1 .5.5V15h-1z"/></svg>
+          </button>
+        </form>
+      {% else %}
+        <a href="{% url 'accounts:login' %}" class="icon-btn" data-tooltip="Login" aria-label="Login">
+          <svg viewBox="0 0 16 16"><path d="M12 1a1 1 0 0 1 1 1v13h1.5a.5.5 0 0 1 0 1h-13a.5.5 0 0 1 0-1H3V2a1 1 0 0 1 1-1zm-2 9a1 1 0 1 0 0-2 1 1 0 0 0 0 2"/></svg>
+        </a>
 
-        <div class="header-center">
-            <h1>iNNiT</h1>
-        </div>
-    </header>
+        <a href="{% url 'accounts:register_step1' %}" class="icon-btn" data-tooltip="Register" aria-label="Register">
+          <svg viewBox="0 0 16 16"><path d="M4 16s-1 0-1-1 1-4 5-4 5 3 5 4-1 1-1 1zm4-5.95a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5"/><path d="M2 1a2 2 0 0 0-2 2v9.5A1.5 1.5 0 0 0 1.5 14h.653a5.4 5.4 0 0 1 1.066-2H1V3a1 1 0 0 1 1-1h12a1 1 0 0 1 1 1v9h-2.219c.554.654.89 1.373 1.066 2h.653a1.5 1.5 0 0 0 1.5-1.5V3a2 2 0 0 0-2-2z"/></svg>
+        </a>
+      {% endif %}
+    </div>
+  </header>
 
-    <main class="{% block main_class %}{% endblock %}">
-        {% if messages %}
-        {% for message in messages %}
-            <div class="flash">{{ message }}</div>
-        {% endfor %}
-        {% endif %}
-        {% block content %}{% endblock %}
-    </main>
+  <main>
+    {% if messages %}
+      {% for message in messages %}
+        <div class="flash">{{ message }}</div>
+      {% endfor %}
+    {% endif %}
 
-    <footer>
-        <p>iNNiT 2025</p>
-    </footer>
+    <div class="panel">
+      {% block content %}{% endblock %}
+    </div>
+  </main>
+
+  <footer>
+    <small>© 2025 iNNiT</small>
+  </footer>
+
+  <script>
+    // theme toggle
+    const themeToggle = document.getElementById('theme-toggle');
+    const root = document.documentElement;
+    function applyTheme(theme){
+      if(theme === 'dark'){ document.body.classList.add('dark'); themeToggle.setAttribute('aria-pressed','true'); }
+      else { document.body.classList.remove('dark'); themeToggle.setAttribute('aria-pressed','false'); }
+      localStorage.setItem('innit_theme', theme);
+    }
+    (function(){
+      const saved = localStorage.getItem('innit_theme') || (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+      applyTheme(saved);
+    })();
+    themeToggle.addEventListener('click', ()=> {
+      const cur = document.body.classList.contains('dark') ? 'dark' : 'light';
+      applyTheme(cur === 'dark' ? 'light' : 'dark');
+    });
+
+    document.getElementById('github-link').addEventListener('click', (e) => {
+      e.preventDefault();
+      window.open('https://github.com/your/repo','_blank');
+    });
+  </script>
 </body>
 </html>

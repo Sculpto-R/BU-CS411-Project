@@ -13,24 +13,31 @@
         margin: 0;
         padding: 0;
     }
+
     #map {
         position: fixed;
         top: 0;
         left: 0;
-        z-index: -1; /* ensures header & UI remain interactive */
+        z-index: 0; /* allow interaction */
+    }
+
+    header, nav, .ui-elements {
+        position: relative;
+        z-index: 1000; /* keep clickable overlays (like nav bar) above map */
     }
 </style>
 
 <script>
+document.addEventListener("DOMContentLoaded", function() {
     const map = L.map('map', {
         zoomControl: true,
         minZoom: 11,
         maxZoom: 16,
-    }).setView([51.5074, -0.1278], 12); // London center
+    }).setView([51.5074, -0.1278], 12);
 
     const londonBounds = L.latLngBounds(
-        [51.28, -0.5103], // SW
-        [51.686, 0.334]   // NE
+        [51.28, -0.5103],
+        [51.686, 0.334]
     );
     map.setMaxBounds(londonBounds);
     map.on('drag', function() { map.panInsideBounds(londonBounds, { animate: true }); });
@@ -41,16 +48,31 @@
         attribution: '&copy; OpenStreetMap contributors'
     }).addTo(map);
 
-    const events = [
-        { name: 'Camden Concert', coords: [51.54, -0.14] },
-        { name: 'Shoreditch Club Night', coords: [51.526, -0.078] },
-        { name: 'Brixton Street Festival', coords: [51.46, -0.115] },
-    ];
-
-    events.forEach(evt => {
-        L.marker(evt.coords)
-        .addTo(map)
-        .bindPopup(`<strong>${evt.name}</strong>`);
-    });
+    // Load events from backend
+    fetch("{% url 'accounts:api_find_events' %}")
+        .then(res => res.json())
+        .then(data => {
+            console.log("Loaded events:", data.count);
+            data.events.forEach(evt => {
+                const icon = L.icon({
+                    iconUrl: `/static/icons/${evt.type || 'event'}.png`,
+                    iconSize: [28, 28],
+                    iconAnchor: [14, 28],
+                    popupAnchor: [0, -24]
+                });
+                const marker = L.marker([evt.lat, evt.lon]).addTo(map);
+                const html = `
+                    <div class="event-popup">
+                        <strong>${evt.title}</strong>
+                        ${evt.snippet ? `<p>${evt.snippet}</p>` : ''}
+                        ${evt.url ? `<a href="${evt.url}" target="_blank">View Event</a>` : ''}
+                        <small>${evt.date ? 'Date: ' + evt.date : ''}</small>
+                    </div>
+                `;
+                marker.bindPopup(html);
+            });
+        })
+        .catch(err => console.error("Failed to load events:", err));
+});
 </script>
 {% endblock %}

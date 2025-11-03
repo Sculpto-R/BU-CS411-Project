@@ -25,6 +25,5 @@ urlpatterns = [
     path('', account_views.landing_page, name='landing'),
     path('home/', account_views.home_screen, name='home'),
     path('accounts/', include('accounts.urls', namespace='accounts')),
+    staticfiles_urlpatterns(),
 ]
-
-urlpatterns += staticfiles_urlpatterns()

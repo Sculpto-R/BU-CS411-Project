@@ -31,7 +31,7 @@ class AccountForm(UserCreationForm):
 class DOBForm(forms.Form):
     date_of_birth = forms.DateField(
         widget=forms.DateInput(attrs={'type': 'date'}),
-        help_text="⚠️ This service is for users 18 and older",
+        help_text="This service is for users 18 and older",
         required=True
     )
 

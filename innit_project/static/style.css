@@ -1,0 +1,175 @@
+    :root{
+      --bg:#f3eada;
+      --panel-bg: rgba(255,255,255,0.9);
+      --accent:#7db8a8;
+      --accent-hover:#f96e2a;
+      --text:#111;
+      --header-bg: rgba(0,0,0,0.82);
+      --tooltip-bg:#000;
+    }
+    /* Dark theme overrides */
+    body.dark {
+      --bg: #0f1720;
+      --panel-bg: rgba(8,11,15,0.7);
+      --accent: #0ea5a4;
+      --accent-hover: #f97316;
+      --text: #fff;
+      --header-bg: rgba(6,8,10,0.9);
+      --tooltip-bg: rgba(255,255,255,0.07);
+    }
+
+    html,body{height:100%}
+    body{
+      margin:0;
+      padding:0;
+      font-family: 'Roboto', 'Segoe UI', Arial, sans-serif;
+      background-color: var(--bg);
+      color: var(--text);
+      line-height:1.6;
+      -webkit-font-smoothing:antialiased;
+      -moz-osx-font-smoothing:grayscale;
+    }
+
+    header{
+      position:fixed;
+      top:0;
+      left:0;
+      right:0;
+      height:68px;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:1rem;
+      padding:0 1rem;
+      background: var(--header-bg);
+      backdrop-filter: blur(10px) saturate(150%);
+      z-index:1000;
+      box-sizing:border-box;
+    }
+
+    button {
+        background-color: #7db8a8;
+        color: white;
+        border: none;
+        padding: 0.6rem 1.2rem;
+        border-radius: 5px;
+        cursor: pointer;
+        font-weight: bold;
+        font-size: 0.95rem;
+        margin: 0.3rem 0.2rem;
+        transition: background 0.3s ease, transform 0.2s ease;
+    }
+
+    button:hover {
+        background-color: #5c948a;
+        transform: scale(1.03);
+    }
+
+    button:active {
+        background-color: #47766f;
+        transform: scale(0.98);
+    }
+
+    /* Fix for SVG scaling for icon buttons */
+    .icon-btn {
+        padding: 0 !important;
+        width: 42px;
+        height: 42px;
+        min-width: 42px;
+        min-height: 42px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .icon-btn svg {
+        width: 22px;
+        height: 22px;
+        flex-shrink: 0;
+        transform: none !important;
+    }
+
+    .header-left-row{
+      display:flex;
+      align-items:center;
+      gap:1rem;
+    }
+
+    /* iNNiT Title */
+    .brand {
+      display:flex;
+      align-items:center;
+      gap:.75rem;
+      font-family:'Bitcount Grid Single', sans-serif;
+      font-size:2rem;
+      color: #fff;
+      margin-left:.25rem;
+    }
+    
+    /* small icon buttons group on right */
+    .header-actions{
+      display:flex;
+      align-items:center;
+      gap:.6rem;
+    }
+
+    /* icon circle */
+    .icon-btn {
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      width:42px;
+      height:42px;
+      border-radius:50%;
+      background: var(--accent);
+      color: #fff;
+      border: none;
+      cursor:pointer;
+      transition: background .18s ease, transform .08s;
+      position:relative;
+    }
+    .icon-btn:hover{ background: var(--accent-hover); transform: translateY(-1px); }
+
+    /* ensure inline svg uses currentColor */
+    .icon-btn svg { width:20px; height:20px; fill: currentColor; pointer-events:none; }
+
+    /* tooltip */
+    .icon-btn[data-tooltip]::after{
+      content: attr(data-tooltip);
+      position: absolute;
+      left:50%;
+      transform: translateX(-50%);
+      bottom: -40px;
+      white-space:nowrap;
+      background: var(--tooltip-bg);
+      color: #fff;
+      padding:6px 8px;
+      font-size:12px;
+      border-radius:6px;
+      opacity:0;
+      pointer-events:none;
+      transition:opacity .18s, transform .18s;
+      transform-origin: center;
+    }
+    .icon-btn:hover::after{ opacity:1; transform: translateX(-50%) translateY(-6px); }
+
+    /* main area */
+    main{ padding:86px 1.25rem 2.5rem; max-width:1100px; margin:0 auto; box-sizing:border-box; min-height:calc(100vh - 160px); }
+    main.panel { background: var(--panel-bg); border-radius:10px; padding:2rem; box-shadow: 0 6px 24px rgba(2,6,23,0.08); }
+
+    /* small global spacing improvements */
+    h1,h2,h3{ margin-top:1.25rem; margin-bottom:.6rem; }
+    form > div{ margin-bottom:1rem; }
+    label{ display:block; margin-bottom:.35rem; font-weight:600; color:var(--text); }
+    input[type="text"], input[type="email"], input[type="date"], textarea, select {
+      width:100%;
+      padding:.6rem .75rem;
+      border-radius:6px;
+      border:1px solid rgba(0,0,0,0.12);
+      box-sizing:border-box;
+      background: #fff;
+      color:var(--text);
+    }
+    .small { font-size:.9rem; color: #666; }
+
+    footer{ text-align:center; padding:1.2rem 0; color:var(--text); opacity:.9; margin-top:2rem; }
