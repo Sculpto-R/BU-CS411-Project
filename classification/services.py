@@ -5,6 +5,7 @@ from django.utils import timezone
 from ingestion.models import RawPost
 from classification.models import EventCandidate
 from datetime import datetime, timedelta
+from events.models import Event
 
 _RULES_CACHE = None
 
@@ -427,4 +428,24 @@ def match_to_existing_event(candidate_id):
     return
 
 def promote_candidate_to_event(candidate_id):
-    return 
+
+    cand = EventCandidate.objects.get(pk=candidate_id)
+    data = cand.etracted_json or {}
+    venue = data.get("venue") or {}
+    location = venue.get("area") or venue.get("postcode")
+
+    title = "".join(data.get("tags") or []) or "Untitled Event"
+
+    ev = Event.objects.create(
+        title = title,
+        description = cand.raw_post.caption or "",
+        date_start = data.get("start"),
+        date_end = data.get("end"),
+        location = location,
+        price_min = data.get("price_min"),
+        price_max = data.get("price_max"),
+        age_restriction = data.get("age"),
+        ai_score = cand.score,
+    )
+
+    return ev.id
