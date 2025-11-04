@@ -139,13 +139,19 @@ def parse_time_fragment(text):
 
     text = text.strip().lower()
 
+    #Use regex to find parts of the time:
+    #(\d{1,2}) finds 1 or 2 digits for the hour (like '10' or '22')
+    #(?::(\d{2}))? finds colon + 2 digits for minutes (like ':30')
+    #\s*(am|pm)?$ finds 'am' or 'pm'
     m = re.match(r"(\d{1,2})(?::(\d{2}))?\s*(am|pm)?$",text)
 
+    #If no match then no time is returned
     if not m:
         return None
     
+    #convert the text found into numbers
     hour = int(m.group(1))
-    minute = int(m.group(2) or 0)
+    minute = int(m.group(2) or 0) #if missing use 0
     ampm = m.group(3)
 
     #Convert to 24hr if am/pm
@@ -154,7 +160,7 @@ def parse_time_fragment(text):
     if ampm == "am" and hour == 12:
         hour = 0
     
-    #Ignores weird hours
+    #Ignores invalid hours
     if hour < 0 or hour > 23 or minute < 0 or minute > 59:
         return None
     
@@ -164,29 +170,34 @@ def guess_base_date(text):
     "Picks a base calender date from the event information."
 
     text = text.strip().lower()
-    now = datetime.now()
+    now = datetime.now() #gets the current date and time as the default
 
+    #Uses regex to find a date like '12 Oct' or '12 October'
+    #(\d{1,2}) finds the day (1-31)
+    #Then regex lookds for the month (abbreviation or full name)
     m = re.search(r"\b(\d{1,2})\s*jan|feb|mar|apr|may|jun|jul|aug|sep|sept|oct|nov|dec|"
                   r"january|february|march|april|june|july|august|september|octoeber|november|december)\b",
                   text, flags = re.IGNORECASE)
     
     if m:
         day = int(m.group(1))
-        mon = MONTHS[m.group(2).lower()]
-        year = now.year
+        mon = MONTHS[m.group(2).lower()] #month mapped to number
+        year = now.year #assumes current year
         try_date = datetime(year, mon, day)
 
+        #if the date is more than 2 months in the past, it is next year
         if (try_date - now).days <-60:
             year += 1
         return datetime(year, mon, day)
     
+    #Uses regex to find date in numeric format like '12/10' or '12-10' or '12/10/24'
     m = re.search(r"\b(\d{1,2})[/-](\d{1,2})(?:[/-](\d{2,4}))?\b", text)
 
     if m:
         d = int(m.group(1))
         mon = int(m.group(2))
-        year = int(m.group(3))
-        if year <100:
+        year = int(m.group(3)) #year or current year
+        if year <100: #if 2-digit year like '21' add 2000 so it is converted to '2021'
             year += 2000
         return datetime(year, mon, d)
     
@@ -200,15 +211,19 @@ def guess_base_date(text):
 def find_time_range(text):
     "Finds '10pm-4am' or '22:00-04:00 and returns ((h1,m1), (h2, m2)) or None"
 
+    #Uses regex to search for two times separted by - and –-
     m = re.search(r"(\d{1,2}(?::\d{2})?\s*(?:am|pm)?)\s*(\d{1,2}(?::d{2})?\s*(?:am|pm)?)",
                   text, flags=re.IGNORECASE)
 
+    #If no match then returns nothing
     if not m:
         return None
     
+    #Extracts first and second time from regex
     time1 = parse_time_fragment(m.group(1))
     time2 = parse_time_fragment(m.group(2))
     
+    #If both times valid
     if time1 and time2:
         return (time1, time2)
     
@@ -217,8 +232,10 @@ def find_time_range(text):
 def find_single_time(text):
     "Finds a single time like '10pm' or '22:30' and returns (h,m) or None."
 
+    #Regex searches for a single time
     m = re.search(r"\b(\d{1,2}(?::\d{2})?\s*(?:am|pm)?)\b", text, flags=re.IGNORECASE )
 
+    #If no match found returns none
     if not m:
         return None
     
@@ -288,39 +305,63 @@ def extract_venue(text):
     return {"postcode": postcode, "area": area, "name": name}
 
 
-def score_candidate_quality(extractions): # WORK ON
+def score_candidate_quality(extractions): 
+    '''Function takes all extracted event information (tags, price, time, venue, etc.) and calculates
+    a confidence score between 0.0 (low confidence) and 1.0 (high confidence)'''
 
+    #If extraction dictionary is empty or invalid, cannot score
     if extractions == '':
         return 0.0
     
-    score = 0.0
-    total = 0.0
+    #Initialize score counters
+    score = 0.0 #current total confidence score
+    total = 0.0 #maximum possible score weight
 
+    #Pulls out all tag scores (ex. {"techno":1.0})
     tagScores = extractions.get("tag_scores") or {}
+
+    #Add up the numeric weights of all matched tags
     tagSum = sum(tagScores.values())
+    
+    #Normalize tags
     tagComponent = min(tagSum / 3.0, 1.0)
+
+    #Add the weighted tag score
     score += 0.35 * tagComponent 
     total += 0.35
 
+    #Check if both start and end times exist in the extracted data
     hasTime = bool(extractions.get("start") and extractions.get("end"))
+
+    #Give 0.25 credit 
     score += 0.25 * (1.0 if hasTime else 0.0)
     total += 0.25
 
+    #Extract venue data
     venue = extractions.get("venue") or {}
+
+    #Check if venue has a postcode or an area name
     hasPostcode = bool(venue.get("postcode"))
     hasArea = bool(venue.get("area"))
+
     venueComponent = 1.0 if hasPostcode else (0.5 if hasArea else 0.0)
+
     score += 0.20 * venueComponent
     total += 0.20
 
+    #Check if price and age restriction are mentioned
     hasPrice = ((extractions.get("price_min") is not None) or (extractions.get("price_max") is not None))
     hasAge = bool(extractions.get("age"))
+    
     score += 0.10 * (1.0 if hasPrice else 0.0)
     score += 0.10 * (1.0 if hasAge else 0.0)
     total += 0.20
 
+    #Divide by total so everything adds up to a 0-1 scale
     if total > 0:
         score = score/total
+    
+    #Ensure score within range
     if score < 0.0:
         score = 0.0
     if score > 1.0:
@@ -328,22 +369,29 @@ def score_candidate_quality(extractions): # WORK ON
 
     return 
 
-def build_event_candidate(rawPostID): #WORK ON
+def build_event_candidate(rawPostID): 
+    """Function pulls a a raw event by its ID, runs all AI extractors, builds a JSON-like dictionary"
+    of extracted data, calculates the confidence score, and saves everythign as a new EventCandidate object in the database."""
 
+    #Gets the raw event 
     raw = RawPost.objects.get(pk = rawPostID)
     text = raw.caption or ""
 
+    #Extracts keywords/tags
     tagPairs = suggest_tags(text)
     tagScores = dict(tagPairs)
-    tags = [t for t, _ in tagPairs]
+    tags = [t for t, _ in tagPairs] #list of tag names
 
+    #Extracts structured data
     pa = extract_price_and_age(text)
     dt = extract_datetime(text)
     venue = extract_venue(text)
 
+    #Formats dateime fields for JSON storage
     startISO = dt[0].isoformat() if dt else None
     endISO = dt[1].isoformat() if dt else None
 
+    #Combines everything into one dictionary
     extractions = {
         "tags": tags,
         "tag_scores": tagScores,
@@ -355,16 +403,19 @@ def build_event_candidate(rawPostID): #WORK ON
         "venue": venue,
     }
 
+    #Computes the candidate's overall guality score
     score = score_candidate_quality(extractions)
 
-    hasPlace = bool(venue.get("postcode") or venue.get("area"))
-    needsReview = not(score >= 0.75 and startISO and hasPlace)
+    #Decides if human review is needed 
+    hasPlace = bool(venue.get("postcode") or venue.get("area")) #If score is high, found both date/time and venue then AI approved
+    needsReview = not(score >= 0.75 and startISO and hasPlace) #flagged if needs review
 
+    #Creates EventCandidate record
     candidate = EventCandidate.objects.create(
-        raw_post = raw,
-        extracted_json = extractions,
-        score = score,
-        needs_review = needsReview,
+        raw_post = raw, #link to original event
+        extracted_json = extractions, #All AI data stored in JSON field
+        score = score, #confidence level (0-1)
+        needs_review = needsReview, #does it need a manual check?
     )
 
     return candidate.id
