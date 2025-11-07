@@ -14,6 +14,8 @@ from django.db.models.signals import post_save
 from django.dispatch import receiver
 from django.shortcuts import render, redirect
 from django.urls import reverse_lazy, reverse
+from .services.scraper import fetch_events_for_preferences
+
 
 from .forms import AccountForm, DOBForm, PreferencesForm, CustomPasswordChangeForm, ProfileEditForm
 from .models import Profile
@@ -369,11 +371,6 @@ def edit_preferences(request):
     return render(request, 'accounts/edit_preferences.html', {'form': form})
 
 
-
-
-
-
-
 def haversine_dist_km(lat1, lon1, lat2, lon2):
     """Return distance in km between two lat/lon points."""
     R = 6371.0
@@ -464,21 +461,10 @@ def build_overpass_query(interests, around_m=5000, lat=51.5074, lon=-0.1278, max
     return q
 
 
-# ---------- main API view ----------
+# API
 @require_GET
 @login_required
 def api_find_events(request):
-    """
-    GET parameters:
-      - lat, lon (optional) : center location (defaults to London center)
-      - radius (optional) : search radius in meters (default 5000)
-    Returns JSON:
-      { events: [ { id, title, lat, lon, type, snippet, url, date_iso } ], venues: [...] }
-    """
-    user = request.user
-    profile = getattr(user, 'profile', None)
-
-    # parse params (with sensible defaults)
     try:
         lat = float(request.GET.get('lat', 51.5074))
         lon = float(request.GET.get('lon', -0.1278))
@@ -490,177 +476,12 @@ def api_find_events(request):
     except Exception:
         radius = 5000
 
-    # build interest tokens from profile (or fallback to defaults)
-    interests = normalize_preferences(profile) or ['party', 'club', 'concert']
-
-    # Build Overpass query
-    query = build_overpass_query(interests, around_m=radius, lat=lat, lon=lon)
-
-    overpass_url = "https://overpass-api.de/api/interpreter"
-    try:
-        r = requests.get(overpass_url, params={'data': query}, timeout=20)
-        r.raise_for_status()
-        osm = r.json()
-    except Exception as e:
-        logger.warning("Overpass query failed: %s", e)
-        osm = {'elements': []}
-
-    # Collect venues
-    venues = []
-    for el in osm.get('elements', []):
-        # element may be node or way; get lat/lon (ways provide center)
-        el_lat = el.get('lat') or (el.get('center') or {}).get('lat')
-        el_lon = el.get('lon') or (el.get('center') or {}).get('lon')
-        if not el_lat or not el_lon:
-            continue
-        tags = el.get('tags', {}) or {}
-        v = {
-            'id': el.get('id'),
-            'name': tags.get('name', tags.get('brand') or 'Unnamed'),
-            'type': tags.get('amenity') or tags.get('leisure') or tags.get('tourism') or 'venue',
-            'lat': el_lat,
-            'lon': el_lon,
-            'tags': tags
-        }
-        venues.append(v)
-
-    # Basic scraping of a public aggregator to find candidate events (keep it minimal)
-    scraped_events = []
-    try:
-        # lightweight request to an aggregator page (London); change if needed
-        ev_res = requests.get("https://allevents.in/london", timeout=10, headers={'User-Agent': 'iNNiT-bot/0.1 (+https://innit.local)'} )
-        if ev_res.status_code == 200:
-            soup = BeautifulSoup(ev_res.text, "html.parser")
-            # site structure may vary; try a couple of selectors gracefully
-            cards = soup.select(".event-item, .event-card, .col-event-card") or soup.select(".card") or []
-            # Grab top ~40 cards
-            for card in cards[:40]:
-                # Try to extract title, url, date, and short snippet if available
-                title_tag = card.select_one("h3, .card-title, .event-title, a")
-                link_tag = card.select_one("a[href]")
-                date_tag = card.select_one(".date, time, .event-time")
-                snippet_tag = card.select_one(".description, .card-text, .event-desc")
-                title = title_tag.get_text(strip=True) if title_tag else None
-                url = link_tag['href'] if link_tag and link_tag.get('href') else None
-                snippet = snippet_tag.get_text(strip=True) if snippet_tag else ''
-                date_iso = None
-                if date_tag:
-                    date_text = date_tag.get_text(" ", strip=True)
-                    # try to parse date (many formats); be lenient
-                    try:
-                        parsed = datetime.fromisoformat(date_text.strip())
-                        date_iso = parsed.date().isoformat()
-                    except Exception:
-                        # fallback: search for YYYY-MM-DD substring
-                        import re
-                        m = re.search(r'(\d{4}-\d{2}-\d{2})', date_text)
-                        if m:
-                            date_iso = m.group(1)
-                if title:
-                    scraped_events.append({
-                        'title': title,
-                        'url': url,
-                        'snippet': snippet,
-                        'date': date_iso
-                    })
-    except Exception as e:
-        logger.debug("Event scraping failed (non-fatal): %s", e)
-
-    # Match scraped events to venues (best-effort: name substring / nearest)
-    matched_events = []
-    for ev in scraped_events:
-        # reject past events if date is parseable
-        if ev.get('date'):
-            try:
-                ev_date = datetime.fromisoformat(ev['date']).date()
-                if ev_date < date.today():
-                    continue
-            except Exception:
-                pass
-
-        title_low = (ev['title'] or '').lower()
-        matched_venue = None
-        # First try name substring match
-        for v in venues:
-            if v['name'] and v['name'].lower() in title_low or title_low in (v['name'] or '').lower():
-                matched_venue = v
-                break
-        # If none, use nearest venue within threshold (2km)
-        if not matched_venue and venues:
-            # compute distances; choose nearest
-            nearest = min(venues, key=lambda x: haversine_dist_km(lat, lon, x['lat'], x['lon']))
-            if haversine_dist_km(lat, lon, nearest['lat'], nearest['lon']) <= (radius / 1000.0):
-                matched_venue = nearest
-
-        # Decide event type by intersection with interests
-        ev_type = None
-        for it in interests:
-            if it in title_low or it in (ev['snippet'] or '').lower():
-                ev_type = it
-                break
-        if not ev_type:
-            ev_type = matched_venue['type'] if matched_venue else 'event'
-
-        # Build event record
-        if matched_venue:
-            e = {
-                'title': ev['title'],
-                'url': ev.get('url'),
-                'snippet': ev.get('snippet'),
-                'date': ev.get('date'),
-                'lat': matched_venue['lat'],
-                'lon': matched_venue['lon'],
-                'venue_name': matched_venue['name'],
-                'type': ev_type,
-                'source': 'allevents.in'
-            }
-            matched_events.append(e)
-
-    # Also create pseudo-events from venues (if no scraped match), e.g., upcoming nights
-    # We limit to a sample of venues:
-    for v in venues[:40]:
-        # skip if already have event for this venue
-        if any(abs(e['lat'] - v['lat']) < 1e-6 and abs(e['lon'] - v['lon']) < 1e-6 for e in matched_events):
-            continue
-        # create a lightweight pseudo event — marked as 'venue_suggestion'
-        title = f"{v['name']} — {v['type']}"
-        e = {
-            'title': title,
-            'url': None,
-            'snippet': f"Venue: {v['name']} ({v['type']})",
-            'date': (date.today()).isoformat(),
-            'lat': v['lat'],
-            'lon': v['lon'],
-            'venue_name': v['name'],
-            'type': v['type'],
-            'source': 'osm'
-        }
-        matched_events.append(e)
-        # limit number to avoid excessive payload
-        if len(matched_events) >= 80:
-            break
-
-    # Filter only events that match user interests (best-effort)
-    filtered = []
-    token_set = set(interests)
-    for e in matched_events:
-        # match event type or any token in title/snippet
-        ek = e.get('type', '').lower()
-        title_snip = (e.get('title','') + " " + e.get('snippet','')).lower()
-        if ek in token_set or any(tok in title_snip for tok in token_set):
-            filtered.append(e)
-    # fallback: if filtered empty, return matched_events
-    if not filtered:
-        filtered = matched_events
-
-    # Trim results
-    filtered = filtered[:60]
+    profile = getattr(request.user, 'profile', None)
+    events = fetch_events_for_preferences(profile, center=(lat, lon), radius_m=radius)
 
     return JsonResponse({
         'center': {'lat': lat, 'lon': lon, 'radius_m': radius},
-        'preferences': interests,
-        'count': len(filtered),
-        'events': filtered
+        'preferences': profile.export_preferences() if profile else [],
+        'count': len(events),
+        'events': events
     })
-
-
