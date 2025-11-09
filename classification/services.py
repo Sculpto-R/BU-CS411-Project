@@ -5,7 +5,7 @@ from django.utils import timezone
 from ingestion.models import RawPost
 from classification.models import EventCandidate
 from datetime import datetime, timedelta
-from events.models import Event
+from api.models import Event
 
 _RULES_CACHE = None
 
