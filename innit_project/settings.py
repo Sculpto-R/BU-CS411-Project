@@ -10,7 +10,6 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.2/ref/settings/
 """
 
-import os, sys
 from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -21,7 +20,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-u^r6#b@j!khgr+by4ty-ni84=k8ijnct$yv!zp+99#k5clwrk('
+SECRET_KEY = "django-insecure-ls+min&m-8svmkm$x7h!zwo&9=nt%0_st1-$^p2s&08)uyop6_"
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
@@ -38,8 +37,11 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
-    'accounts.apps.AccountsConfig',
-    'rest_framework',
+    "rest_framework",
+    "classification.apps.ClassificationConfig",
+    "ingestion",
+    "events",
+    "api"
 ]
 
 MIDDLEWARE = [
@@ -48,9 +50,8 @@ MIDDLEWARE = [
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
-    #
-    'django.contrib.messages.middleware.MessageMiddleware',
-    'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    "django.contrib.messages.middleware.MessageMiddleware",
+    "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
 
 ROOT_URLCONF = "innit_project.urls"
@@ -58,7 +59,7 @@ ROOT_URLCONF = "innit_project.urls"
 TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
-        'DIRS': [ BASE_DIR / 'templates' ],
+        "DIRS": [],
         "APP_DIRS": True,
         "OPTIONS": {
             "context_processors": [
@@ -101,24 +102,6 @@ AUTH_PASSWORD_VALIDATORS = [
         "NAME": "django.contrib.auth.password_validation.NumericPasswordValidator",
     },
 ]
-
-
-# Redirects + login
-LOGIN_REDIRECT_URL = '/home/'
-LOGIN_URL = '/accounts/login/'
-LOGOUT_REDIRECT_URL = 'landing'
-
-# Email - development (console)
-EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
-DEFAULT_FROM_EMAIL = 'no-reply@innit.local'
-
-# For production, replace with SMTP config:
-# EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-# EMAIL_HOST = 'smtp.example.com'
-# EMAIL_PORT = 587
-# EMAIL_USE_TLS = True
-# EMAIL_HOST_USER = 'smtp-user'
-# EMAIL_HOST_PASSWORD = 'smtp-pass'
 
 
 # Internationalization

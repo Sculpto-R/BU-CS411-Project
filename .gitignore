@@ -22,4 +22,7 @@ venv/
 env/
 *.env
 
-*.log
+*.log.venv/
+__pycache__/
+*.pyc
+data_scripts/event_scraping/events_out.csv
