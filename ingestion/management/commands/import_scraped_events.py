@@ -66,6 +66,11 @@ class Command(BaseCommand):
                     or ""
                 )
 
+                # Skip junk rows that have no real event
+                if title.strip() == "(No events found)" or not title.strip():
+                    continue
+
+
                 # Price info
                 price_min = row.get("price_min") or ""
                 price_max = row.get("price_max") or ""

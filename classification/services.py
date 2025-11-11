@@ -174,16 +174,12 @@ def parse_time_fragment(text):
     return (hour, minute)
 
 def guess_base_date(text):
-    "Picks a base calender date from the event information."
+    "Picks a base calendar date from the event information."
 
-    text = text.strip().lower()
-    now = datetime.now() #gets the current date and time as the default
+    text = (text or "").strip().lower()
+    now = datetime.now()  # current date/time as default
 
-    #Uses regex to find a date like '12 Oct' or '12 October'
-    #(\d{1,2}) finds the day (1-31)
-    #Then regex lookds for the month (abbreviation or full name)
-        # Find a date like '12 Oct' or '12 October'
-    # Group 1 = day, Group 2 = month name/abbrev
+    # 1) Named month formats like '12 Oct', '12 October'
     m = re.search(
         r"\b(\d{1,2})\s*"
         r"(jan|feb|mar|apr|may|jun|jul|aug|sep|sept|oct|nov|dec|"
@@ -194,32 +190,45 @@ def guess_base_date(text):
 
     if m:
         day = int(m.group(1))
-        mon = MONTHS[m.group(2).lower()] #month mapped to number
-        year = now.year #assumes current year
+        mon = MONTHS[m.group(2).lower()]
+        year = now.year
         try_date = datetime(year, mon, day)
 
-        #if the date is more than 2 months in the past, it is next year
-        if (try_date - now).days <-60:
+        # if the date is more than 2 months in the past, assume next year
+        if (try_date - now).days < -60:
             year += 1
         return datetime(year, mon, day)
-    
-    #Uses regex to find date in numeric format like '12/10' or '12-10' or '12/10/24'
-    m = re.search(r"\b(\d{1,2})[/-](\d{1,2})(?:[/-](\d{2,4}))?\b", text)
 
+    # 2) Numeric formats like '12/10', '12-10', '12/10/24', '12-10-2025'
+    m = re.search(r"\b(\d{1,2})[/-](\d{1,2})(?:[/-](\d{2,4}))?\b", text)
     if m:
         d = int(m.group(1))
         mon = int(m.group(2))
-        year = int(m.group(3)) #year or current year
-        if year <100: #if 2-digit year like '21' add 2000 so it is converted to '2021'
-            year += 2000
-        return datetime(year, mon, d)
-    
+        year_str = m.group(3)
+
+        # sanity check: must look like a real calendar date
+        if not (1 <= mon <= 12 and 1 <= d <= 31):
+            m = None
+        else:
+            if year_str:
+                year = int(year_str)
+                if year < 100:
+                    year += 2000
+            else:
+                year = now.year
+
+            return datetime(year, mon, d)
+
+    # 3) Relative words
     if "tonight" in text:
         return now
     if "tomorrow" in text:
-        return now + timedelta(days = 1)
-    
+        return now + timedelta(days=1)
+
+    # Fallback: current date/time
     return now
+
+
 
 def find_time_range(text):
     "Finds '10pm-4am' or '22:00-04:00' and returns ((h1,m1), (h2, m2)) or None"
@@ -284,36 +293,47 @@ def extract_datetime(text):
 
     return None
 
-def extract_venue(text):
-    "Extracts venue(address) information from website event information."
+UK_POSTCODE_RE = re.compile(
+    r"\b([A-Z]{1,2}\d{1,2}[A-Z]?)\s*(\d[A-Z]{2})\b",
+    re.IGNORECASE,
+)
 
-    #if there is no text
-    if text == '':
+def extract_venue(text):
+    """
+    Extracts venue info (postcode, area/town, and name) from the caption.
+    Assumes the caption is like:
+      title | description | venue_name | address | Starts... | Prices...
+    """
+    if not text:
         return {"postcode": None, "area": None, "name": None}
 
-    words = text.split() #splits event information (seperates by words)
+    parts = [p.strip() for p in text.split("|")]
+
+    venue_name = parts[2] if len(parts) >= 3 else None
+    address = parts[3] if len(parts) >= 4 else ""
+
     postcode = None
     area = None
-    name = None
 
-    londonAreas = ["dalston", "peckham", "brixton", "shoreditch", 
-                   "camden", "deptford", "hackney", "soho", "islington", 
-                   "clapham", "stratford", "notting", "elephant", "bethnal", "angel"] #have to update
+    # 1) Postcode from the address
+    m = UK_POSTCODE_RE.search(address)
+    if m:
+        postcode = (m.group(1) + m.group(2)).upper()
 
-    for word in words:
-        w = word.lower()
-
-        #Postcode
-        #If the word has at least 2 characters and the first is a letter and the second is a number
-        if len(w) >= 2 and w[0].isalpha and w[1].isdigit():
-            postcode = w.upper()
-
-        for areaName in londonAreas:
-            if areaName in w:
-                area = areaName
+    # 2) Try to guess town/area from address
+    # e.g. "Selsfield Road, Haywards Heath, RH17 6TL, Haywards Heath, RH17 6TL"
+    addr_bits = [b.strip() for b in address.split(",") if b.strip()]
+    if addr_bits:
+        # Heuristic: second-to-last or third-to-last piece is often the town
+        for candidate in reversed(addr_bits):
+            # Skip pure postcodes
+            if UK_POSTCODE_RE.search(candidate):
+                continue
+            if any(ch.isalpha() for ch in candidate):
+                area = candidate
                 break
 
-    return {"postcode": postcode, "area": area, "name": name}
+    return {"postcode": postcode, "area": area, "name": venue_name}
 
 
 def score_candidate_quality(extractions): 
