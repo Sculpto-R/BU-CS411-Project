@@ -10,5 +10,7 @@ class Event(models.Model):
     price_min = models.FloatField(blank = True, null = True)
     price_max = models.FloatField(blank = True, null = True)
     age_restriction = models.CharField(max_length = 16, blank = True, null = True)
-    ai_score = models.FloatField(default = 0.0)
+    ai_score = models.FloatField(default=0.0)
     created_at = models.DateTimeField(auto_now_add = True)
+    ai_tags = models.JSONField(default=list, blank=True, null=True)
+

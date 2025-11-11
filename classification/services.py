@@ -14,53 +14,58 @@ _RULES_CACHE = None
 #Weight helps AI understand which keywords matter more when tagging a post
 
 def load_keyword_rules():
-    "Function returns a list of rule dicts from JSON"
-    "Looks for keywords and patterns classified in JSON"
-
-    #If rules loaded, return cached copy
+    """
+    Returns a list of rule dicts from JSON.
+    Caches rules in memory after first load.
+    """
     global _RULES_CACHE
     if _RULES_CACHE is not None:
         return _RULES_CACHE
-    
+
     rules_path = Path(__file__).resolve().parent / "data" / "keyword_rules.json"
-    
-    #Opens JSON file
-    f = open(rules_path, "r", encoding = "utf-8") #"r" means open for reading, encoding = "utf-8" handles emojis, accents, etc.
-    data = json.load(f)
-    f.close()
 
-    for ruleDict in data: #data is a list of dictionaries  [{}] #loop goes through each dictionary (ruleDict)
-        for key in ("pattern", "tag", "weight", "category"): #tuple of 4 keys each rule/dictionary has
-            if key not in ruleDict: #check if key is missing from rule/dictionary 
-                raise ValueError(f"A rule is missing the key:" + key)
-    
+    try:
+        with open(rules_path, "r", encoding="utf-8") as f:
+            data = json.load(f)
+    except Exception as e:
+        print(f"[load_keyword_rules] ERROR reading {rules_path}: {e}")
+        _RULES_CACHE = []
+        return _RULES_CACHE
+
+    for i, ruleDict in enumerate(data):
+        for key in ("pattern", "tag", "weight", "category"):
+            if key not in ruleDict:
+                raise ValueError(f"Rule at index {i} is missing the key: {key}")
+
     _RULES_CACHE = data
-
     return _RULES_CACHE
 
-def suggest_tags(text): 
-    "Function takes text (website event information), goes through keyword rules (JSON file to "
-    "find which tags apply) and returns a list of (tag, score) by matching regex rules in the caption text."
-   
-    "Allows system to understand what each social media post is about -> Converts human text to data"
-
+def suggest_tags(text):
+    """
+    Takes event text, applies regex-based keyword rules, and returns a list of
+    (tag, score) pairs sorted by score descending.
+    """
     if not text:
         return []
-    
-    rules = load_keyword_rules() #calls other function
-    tag_scores = {} #creates empty dictionary to store each tag and its total score ex.{"rave": 1.0, "techno": 0.8}
+
+    rules = load_keyword_rules()
+    tag_scores = {}
 
     for rule in rules:
         pattern = rule["pattern"]
         tag = rule["tag"]
         weight = float(rule.get("weight", 1.0))
-    
-    #Case-insensitive regex search 
-    if re.search(pattern, text, flags = re.IGNORECASE): #uses regex to see if the rule's pattern appears in the text (not case sensitive)
-        tag_scores[tag] = tag_scores.get(tag, 0.0) + weight #adds rule's weight to that tag's total score
 
-    #Convert the dict to a list of (tag, score) pairs
-    #List sorted highest score first
+        # Case-insensitive regex search with safety
+        try:
+            if re.search(pattern, text, flags=re.IGNORECASE):
+                tag_scores[tag] = tag_scores.get(tag, 0.0) + weight
+        except re.error as e:
+            # If a pattern is invalid (e.g. unbalanced parenthesis), skip it
+            print(f"[suggest_tags] Skipping bad regex for tag {tag!r}: {pattern!r} ({e})")
+            continue
+
+    # Convert dict to sorted list of (tag, score)
     return sorted(tag_scores.items(), key=lambda kv: kv[1], reverse=True)
 
 def extract_price_and_age(text):
@@ -121,19 +126,20 @@ def extract_price_and_age(text):
 
 #For extract_datetime
 MONTHS = {
-    "jan":1, "january":1,
-    "feb":2, "february": 2,
-    "mar":3, "march":3,
-    "apr":4, "april": 4,
-    "may":5, 
-    "jun": 6, "june":6,
-    "jul":7, "july":7,
-    "aug":8, "august":8,
-    "sep":9, "september":9,
-    "oct":10, "october":10,
-    "nov":11, "november":11,
-    "dec":12, "december": 12
-    }
+    "jan": 1, "january": 1,
+    "feb": 2, "february": 2,
+    "mar": 3, "march": 3,
+    "apr": 4, "april": 4,
+    "may": 5,
+    "jun": 6, "june": 6,
+    "jul": 7, "july": 7,
+    "aug": 8, "august": 8,
+    "sep": 9, "sept": 9, "september": 9,
+    "oct": 10, "october": 10,
+    "nov": 11, "november": 11,
+    "dec": 12, "december": 12,
+}
+
 
 def parse_time_fragment(text):
     "Turns strings like '10pm' '22:00', '10:30pm' into (hour, minute) 24h."
@@ -176,10 +182,16 @@ def guess_base_date(text):
     #Uses regex to find a date like '12 Oct' or '12 October'
     #(\d{1,2}) finds the day (1-31)
     #Then regex lookds for the month (abbreviation or full name)
-    m = re.search(r"\b(\d{1,2})\s*jan|feb|mar|apr|may|jun|jul|aug|sep|sept|oct|nov|dec|"
-                  r"january|february|march|april|june|july|august|september|octoeber|november|december)\b",
-                  text, flags = re.IGNORECASE)
-    
+        # Find a date like '12 Oct' or '12 October'
+    # Group 1 = day, Group 2 = month name/abbrev
+    m = re.search(
+        r"\b(\d{1,2})\s*"
+        r"(jan|feb|mar|apr|may|jun|jul|aug|sep|sept|oct|nov|dec|"
+        r"january|february|march|april|may|june|july|august|september|october|november|december)\b",
+        text,
+        flags=re.IGNORECASE,
+    )
+
     if m:
         day = int(m.group(1))
         mon = MONTHS[m.group(2).lower()] #month mapped to number
@@ -210,25 +222,23 @@ def guess_base_date(text):
     return now
 
 def find_time_range(text):
-    "Finds '10pm-4am' or '22:00-04:00 and returns ((h1,m1), (h2, m2)) or None"
+    "Finds '10pm-4am' or '22:00-04:00' and returns ((h1,m1), (h2, m2)) or None"
 
-    #Uses regex to search for two times separted by - and –-
-    m = re.search(r"(\d{1,2}(?::\d{2})?\s*(?:am|pm)?)\s*(\d{1,2}(?::d{2})?\s*(?:am|pm)?)",
-                  text, flags=re.IGNORECASE)
-
-    #If no match then returns nothing
+    m = re.search(
+        r"(\d{1,2}(?::\d{2})?\s*(?:am|pm)?)\s*[-–]\s*(\d{1,2}(?::\d{2})?\s*(?:am|pm)?)",
+        text,
+        flags=re.IGNORECASE,
+    )
     if not m:
         return None
-    
-    #Extracts first and second time from regex
+
     time1 = parse_time_fragment(m.group(1))
     time2 = parse_time_fragment(m.group(2))
-    
-    #If both times valid
+
     if time1 and time2:
         return (time1, time2)
-    
     return None
+
 
 def find_single_time(text):
     "Finds a single time like '10pm' or '22:30' and returns (h,m) or None."
@@ -264,11 +274,11 @@ def extract_datetime(text):
 
     #Finds a single time if there is a single time stated for event
     singleTime = find_single_time(text)
-    if singleTime == True:
+    if singleTime:
         h, m = singleTime
-        start = base.replace(hour = h, minute = m)
-        end = start + timedelta(hours=4) 
-        return (start,end)
+        start = base.replace(hour=h, minute=m)
+        end = start + timedelta(hours=4)
+        return (start, end)
 
     #If no time is found stated for event
 
@@ -368,7 +378,7 @@ def score_candidate_quality(extractions):
     if score > 1.0:
         score = 1.0
 
-    return 
+    return score
 
 def build_event_candidate(rawPostID): 
     """Function pulls a a raw event by its ID, runs all AI extractors, builds a JSON-like dictionary"
@@ -430,22 +440,33 @@ def match_to_existing_event(candidate_id):
 def promote_candidate_to_event(candidate_id):
 
     cand = EventCandidate.objects.get(pk=candidate_id)
-    data = cand.etracted_json or {}
+    data = cand.extracted_json or {}
     venue = data.get("venue") or {}
     location = venue.get("area") or venue.get("postcode")
 
-    title = "".join(data.get("tags") or []) or "Untitled Event"
+    # tags from the extraction
+    tags = data.get("tags") or []
+
+    # nicer title: join tags into readable words, e.g. "Film Festival London"
+    if tags:
+        title_parts = [t.replace("-", " ").title() for t in tags]
+        title = " ".join(title_parts)
+    else:
+        # fallback: use first part of caption or default
+        title = (cand.raw_post.caption or "").split("|")[0] or "Untitled Event"
 
     ev = Event.objects.create(
-        title = title,
-        description = cand.raw_post.caption or "",
-        date_start = data.get("start"),
-        date_end = data.get("end"),
-        location = location,
-        price_min = data.get("price_min"),
-        price_max = data.get("price_max"),
-        age_restriction = data.get("age"),
-        ai_score = cand.score,
+        title=title,
+        description=cand.raw_post.caption or "",
+        date_start=data.get("start"),
+        date_end=data.get("end"),
+        location=location,
+        price_min=data.get("price_min"),
+        price_max=data.get("price_max"),
+        age_restriction=data.get("age"),
+        ai_score=cand.score,
+        ai_tags=tags, 
     )
 
     return ev.id
+

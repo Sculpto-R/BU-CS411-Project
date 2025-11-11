@@ -26,3 +26,5 @@ env/
 __pycache__/
 *.pyc
 data_scripts/event_scraping/events_out.csv
+__pycache__/
+*.pyc
