@@ -53,8 +53,6 @@ The system combines:
 
 ## ➤ User's Manual
 
-![User's Manual]()
-
 The current way to run this program is to clone this repo to a local folder by downloading the zip file.
 Open the contained file in your editor of choice.
 From here on, 
