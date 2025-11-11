@@ -1,0 +1,78 @@
+{% extends "base.html" %}
+{% block main_class %}fullscreen{% endblock %}
+{% block content %}
+<div id="map"></div>
+
+<link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+
+<style>
+    html, body, #map {
+        height: 100%;
+        width: 100%;
+        margin: 0;
+        padding: 0;
+    }
+
+    #map {
+        position: fixed;
+        top: 0;
+        left: 0;
+        z-index: 0; /* allow interaction */
+    }
+
+    header, nav, .ui-elements {
+        position: relative;
+        z-index: 1000; /* keep clickable overlays (like nav bar) above map */
+    }
+</style>
+
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    const map = L.map('map', {
+        zoomControl: true,
+        minZoom: 11,
+        maxZoom: 16,
+    }).setView([51.5074, -0.1278], 12);
+
+    const londonBounds = L.latLngBounds(
+        [51.28, -0.5103],
+        [51.686, 0.334]
+    );
+    map.setMaxBounds(londonBounds);
+    map.on('drag', function() { map.panInsideBounds(londonBounds, { animate: true }); });
+
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        maxZoom: 16,
+        minZoom: 11,
+        attribution: '&copy; OpenStreetMap contributors'
+    }).addTo(map);
+
+    // Load events from backend
+    fetch("{% url 'accounts:api_find_events' %}")
+        .then(res => res.json())
+        .then(data => {
+            console.log("Loaded events:", data.count);
+            data.events.forEach(evt => {
+                const icon = L.icon({
+                    iconUrl: `/static/icons/${evt.type || 'event'}.png`,
+                    iconSize: [28, 28],
+                    iconAnchor: [14, 28],
+                    popupAnchor: [0, -24]
+                });
+                const marker = L.marker([evt.lat, evt.lon]).addTo(map);
+                const html = `
+                    <div class="event-popup">
+                        <strong>${evt.title}</strong>
+                        ${evt.snippet ? `<p>${evt.snippet}</p>` : ''}
+                        ${evt.url ? `<a href="${evt.url}" target="_blank">View Event</a>` : ''}
+                        <small>${evt.date ? 'Date: ' + evt.date : ''}</small>
+                    </div>
+                `;
+                marker.bindPopup(html);
+            });
+        })
+        .catch(err => console.error("Failed to load events:", err));
+});
+</script>
+{% endblock %}

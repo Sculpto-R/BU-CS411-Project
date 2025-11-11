@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+{% block content %}
+    <h1>Account details</h1>
+
+    <!-- progress bar -->
+    <div style="margin-bottom: 1rem;">
+        <div style="width:100%;background:#f0f0f0;height:12px;border-radius:6px;">
+        <div style="width:50%;background:#0077b6;height:12px;border-radius:6px;"></div>
+        </div>
+        <small>Step 2 of 4</small>
+    </div>
+
+    <form method="post" novalidate>
+        {% csrf_token %}
+        {{ form.non_field_errors }}
+        <div>
+        {{ form.username.label_tag }}<br>
+        {{ form.username }}
+        {% for err in form.username.errors %}<div style="color:red;">{{ err }}</div>{% endfor %}
+        </div>
+
+        <div>
+        {{ form.first_name.label_tag }}<br>
+        {{ form.first_name }}
+        {% for err in form.first_name.errors %}<div style="color:red;">{{ err }}</div>{% endfor %}
+        </div>
+
+        <div>
+        {{ form.last_name.label_tag }}<br>
+        {{ form.last_name }}
+        {% for err in form.last_name.errors %}<div style="color:red;">{{ err }}</div>{% endfor %}
+        </div>
+
+        <div>
+        {{ form.email.label_tag }}<br>
+        {{ form.email }}
+        {% for err in form.email.errors %}<div style="color:red;">{{ err }}</div>{% endfor %}
+        </div>
+
+        <div>
+        {{ form.password1.label_tag }}<br>
+        {{ form.password1 }}
+        {% for err in form.password1.errors %}<div style="color:red;">{{ err }}</div>{% endfor %}
+        </div>
+
+        <div>
+        {{ form.password2.label_tag }}<br>
+        {{ form.password2 }}
+        {% for err in form.password2.errors %}<div style="color:red;">{{ err }}</div>{% endfor %}
+        </div>
+
+        <p style="margin-top:1rem;">
+        <button type="submit" class="primary-button">Next</button>
+        <a href="{% url 'accounts:register_step1' %}" style="margin-left:1rem;"><<button type="submit" class="primary-button">Back</button></a>
+        </p>
+    </form>
+{% endblock %}

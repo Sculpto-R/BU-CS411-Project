@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>Edit Account</h1>
+<form method="post">
+  {% csrf_token %}
+  {{ form.non_field_errors }}
+  <div>
+    {{ form.first_name.label_tag }}
+    {{ form.first_name }}
+  </div>
+  <div>
+    {{ form.last_name.label_tag }}
+    {{ form.last_name }}
+  </div>
+  <div>
+    {{ form.email.label_tag }}
+    {{ form.email }}
+  </div>
+
+  <button type="submit" class="primary-button">Save</button>
+  <a href="{% url 'accounts:profile' %}"><button type="button" class="primary-button">Cancel</button></a>
+</form>
+{% endblock %}

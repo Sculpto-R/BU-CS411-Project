@@ -1,39 +1,62 @@
 # iNNiT?
 ## ➤ About
-iNNiT? is a Python-based service that locates events in London via website information. This app was developed in the BU London Fall '25 period for CAS CS 411.
+**iNNiT** is a Django-based web-application that designed to help young adults in London discover community events and entertainment tailored to their preferences.
+This app was developed during the Boston University London Fall '25 term for CAS CS 411.
+
+The system combines:
+- Web-scraped event data from various venues
+- User preference profiles stored in a database
+- A future-ready mapping interface for visual exploration
 
 
-#### ⊝ Goals & Objectives:
+---
 
-Help young adults in London find local community events and entertainment based on their listed personal preferences via filtered website information. 
+## ➤ Goals & Objectives:
+
+- Help users discover **upcoming events** around the London area.
+- Personalize recommendations based on **user preferences** (e.g., genres, activities).
+- Present events on an **interactive map interface** (integrating scraped data).
 
 
-#### ⊝ This App vs. Others:
-
-Focused on more contemporary and “underground” events (parties, shows, etc.) that are not as publicized as musicals, lectures, etc. (ex. Those publicized on Eventbrite). 
-
-
-#### ⊝ Specifications:
-
-iNNiT? is a web-based program mapping London community events and entertainment based on those posted on social media (specifically Instagram and TikTok). It uses a profile system to distinguish interests and preferences when searching events and filters out certain events based on user’s preferences. AI sifts through social media posts with these key words entered by the user and location keywords.
+---
 
 ## ➤ 🛠️ Technologies Used
 
-- Python: Programming language
-- Django: Web framework
-- SQLite: Default database for development
-- HTML/CSS: For the basic front-end templates
+| Layer | Technology | Purpose |
+|-------|------------|---------|
+| Backend | Python (Django Framework) | Web application framework |
+| Database | SQLite (Development) | User, profile, event, and preference storage |
+| Frontend | HTML, embedded CSS, Leaflet.js | Lightweight UI and mapping |
+| Scraping | BeautifulSoup4, Requests | (To be implemented) Event scraping pipeline |
+| Testing | Django TestCase | Unit and integration tests |
+| Containerization | Docker, docker-compose | Environment isolation and deployment |
+| API Data | OpenStreetMap (Leaflet Tiles) | Map rendering base layer |
 
-## ➤ Documentation
 
-[Documentation](https://linktodocumentation)
+---
+
+## ➤ ✅ Requirements Checklist
+
+| Requirement | Fulfillment |
+|-------------|-------------|
+| Decoupled frontend/backend | Django Templates & REST |
+| (At least) one external API call | Mapping API's |
+| Use of framework | Django |
+| A database-integration containing (at least) user accounts with salted password hashes | SQLite & built-in salted passwords |
+| Unit & integration tests | various tests across files |
+| Docstrings & Logging | key views |
+| Exception-handling | various tests across files |
+| Containerization | Dockerfile |
 
 
-## ➤ Screenshots
+---
 
-![App Screenshot](https://via.placeholder.com/468x300?text=App+Screenshot+Here)
+## ➤ User's Manual
 
-## - Running
+![User's Manual]()
 
-Current way to run this program is to clone the repo to a local folder, and then type in the following in a terminal:
+The current way to run this program is to clone this repo to a local folder by downloading the zip file.
+Open the contained file in your editor of choice.
+From here on, 
+ navigate to the "innit_project" folder in-terminal, then type in the following in a terminal:
 `python manage.py runserver`

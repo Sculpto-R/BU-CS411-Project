@@ -1,0 +1,20 @@
+• A decoupled frontend / backend
+✔ 
+
+• (At least) one external API call
+✔ 
+
+• Use of framework
+✔ Django is a framework
+
+• A database-integration containing (at least) user accounts with salted password hashes
+✔ Django Profile model tied via OneToOneField, ergo, User model and authentication use PBKDF2 (salted + hashed)
+
+• Unit & integration tests
+✔ Multiple tests in tests.py
+
+• Docstrings, logging and exception-handling
+✔ 
+
+• Containerization
+✔ 
