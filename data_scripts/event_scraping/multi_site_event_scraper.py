@@ -116,20 +116,63 @@ def parse_price(offers: Any):
     return cur,pmin,pmax,is_free
 
 def extract_jsonld_events(html: str) -> List[Dict[str, Any]]:
-    soup = BeautifulSoup(html,"html.parser"); events=[]
-    for tag in soup.find_all("script",{"type":"application/ld+json"}):
-        try: data=json.loads(tag.string or "{}")
-        except Exception: continue
-        def walk(obj):
-            if isinstance(obj, dict):
-                t=obj.get("@type") or obj.get("type")
-                if isinstance(t, list): is_event = "event" in [str(x).lower() for x in t]
-                else: is_event = str(t).lower()=="event"
-                if is_event: events.append(obj)
-                for v in obj.values(): walk(v)
-            elif isinstance(obj, list):
-                for v in obj: walk(v)
-        walk(data)
+    """
+    Find all JSON-LD blocks on the page and return any objects that look like Events.
+
+    This is intentionally tolerant because some sites (including Eventbrite) embed:
+    - a list of objects,
+    - nested objects,
+    - or multiple JSON-LD blocks.
+    """
+    soup = BeautifulSoup(html, "html.parser")
+    events: List[Dict[str, Any]] = []
+
+    def collect_from_obj(obj: Any):
+        """Walk a JSON structure and collect any dicts whose @type includes 'Event'."""
+        if isinstance(obj, dict):
+            t = obj.get("@type") or obj.get("type")
+            is_event = False
+            if isinstance(t, list):
+                is_event = any(str(x).lower() == "event" for x in t)
+            elif isinstance(t, str):
+                is_event = t.lower() == "event"
+            if is_event:
+                events.append(obj)
+            for v in obj.values():
+                collect_from_obj(v)
+        elif isinstance(obj, list):
+            for v in obj:
+                collect_from_obj(v)
+
+    for tag in soup.find_all("script", {"type": "application/ld+json"}):
+        raw = tag.string or tag.get_text() or ""
+        raw = raw.strip()
+        if not raw:
+            continue
+
+        # Try direct parse first
+        try:
+            data = json.loads(raw)
+            collect_from_obj(data)
+            continue
+        except Exception:
+            pass
+
+        # Fallback: some sites concatenate multiple JSON-LD objects.
+        # Try to extract each {...} block and parse separately.
+        try:
+            for m in re.finditer(r"\{.*?\}", raw, flags=re.DOTALL):
+                chunk = m.group(0).strip()
+                if not chunk:
+                    continue
+                try:
+                    data = json.loads(chunk)
+                    collect_from_obj(data)
+                except Exception:
+                    continue
+        except Exception:
+            continue
+
     return events
 
 def jsonld_to_row(obj: Dict[str, Any], page_url: str, venue_hint: Optional[str]) -> EventRow:
