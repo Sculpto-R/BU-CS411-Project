@@ -47,3 +47,17 @@ class Profile(models.Model):
                 seen.add(p)
                 out.append(p)
         return out
+
+
+class UserPreference(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE)
+    preferred_categories = models.JSONField(default=list)
+    preferred_areas = models.JSONField(default=list)
+    min_price = models.FloatField(blank=True, null=True)
+    max_price = models.FloatField(blank=True, null=True)
+
+    def __str__(self):
+        return f"Preferences for {self.user.username}"
+
+    # e.g: UserPreference.objects.filter(preferred_areas__contains=['Shoreditch'])
+    # Scraped events can be filtered per-user and then pinned on a future map.
