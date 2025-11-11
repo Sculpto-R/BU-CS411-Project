@@ -1,0 +1,2 @@
+(self.webpackChunk_N_E=self.webpackChunk_N_E||[]).push([[42107],{16898:function(n,u,_){"use strict";_.r(u);var t=_(12623),e=_(66126);u.default=(0,t.Z)(e.Z)},23551:function(n,u,_){(window.__NEXT_P=window.__NEXT_P||[]).push(["/festivals",function(){return _(16898)}])}},function(n){n.O(0,[97837,28333,92236,73866,51655,14351,69391,242,73082,23846,60661,82798,99788,93543,13982,6335,5290,72786,91680,53339,23821,95257,21826,72448,78169,28140,49774,92888,40179],function(){return n(n.s=23551)}),_N_E=n.O()}]);
+//# sourceMappingURL=festivals-bc954ea48a2dc262.js.map

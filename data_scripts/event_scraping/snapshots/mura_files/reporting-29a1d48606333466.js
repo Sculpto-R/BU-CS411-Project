@@ -1,0 +1,2 @@
+(self.webpackChunk_N_E=self.webpackChunk_N_E||[]).push([[19979],{25635:function(n,t,u){"use strict";u.r(t),u.d(t,{default:function(){return _.Z}});var _=u(99289)},7367:function(n,t,u){(window.__NEXT_P=window.__NEXT_P||[]).push(["/tickets/reporting",function(){return u(25635)}])}},function(n){n.O(0,[80571,97837,28333,92236,73866,51655,14351,69391,242,73082,56388,5290,72786,91680,53339,23821,95257,21826,72448,70256,49774,92888,40179],function(){return n(n.s=7367)}),_N_E=n.O()}]);
+//# sourceMappingURL=reporting-29a1d48606333466.js.map

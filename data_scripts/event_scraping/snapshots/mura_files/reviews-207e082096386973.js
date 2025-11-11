@@ -1,0 +1,2 @@
+(self.webpackChunk_N_E=self.webpackChunk_N_E||[]).push([[55929],{73756:function(n,u,_){"use strict";_.r(u);var e=_(47920),t=_(12623);u.default=(0,t.Z)(e.Q)},62716:function(n,u,_){(window.__NEXT_P=window.__NEXT_P||[]).push(["/reviews",function(){return _(73756)}])}},function(n){n.O(0,[97837,28333,92236,73866,51655,14351,69391,242,73082,23846,60661,82798,99788,93543,9063,5290,72786,91680,53339,23821,95257,21826,72448,78169,20261,49774,92888,40179],function(){return n(n.s=62716)}),_N_E=n.O()}]);
+//# sourceMappingURL=reviews-207e082096386973.js.map

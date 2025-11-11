@@ -1,0 +1,2 @@
+(self.webpackChunk_N_E=self.webpackChunk_N_E||[]).push([[12521],{35516:function(n,u,_){"use strict";_.r(u);var t=_(99289);u.default=t.Z},5401:function(n,u,_){(window.__NEXT_P=window.__NEXT_P||[]).push(["/about",function(){return _(35516)}])}},function(n){n.O(0,[80571,97837,28333,92236,73866,51655,14351,69391,242,73082,56388,5290,72786,91680,53339,23821,95257,21826,72448,70256,49774,92888,40179],function(){return n(n.s=5401)}),_N_E=n.O()}]);
+//# sourceMappingURL=about-f0b12cea45e50dd8.js.map

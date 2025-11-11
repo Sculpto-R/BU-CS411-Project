@@ -1,0 +1,2 @@
+(self.webpackChunk_N_E=self.webpackChunk_N_E||[]).push([[75621],{65975:function(n,_,u){(window.__NEXT_P=window.__NEXT_P||[]).push(["/music",function(){return u(14972)}])}},function(n){n.O(0,[97837,28333,92236,73866,51655,14351,242,73082,23846,60661,82798,99788,6335,73428,5290,72786,91680,23821,95257,21826,78587,49414,49774,92888,40179],function(){return n(n.s=65975)}),_N_E=n.O()}]);
+//# sourceMappingURL=music-8cc401ee3a8747db.js.map
