@@ -241,3 +241,12 @@ def main():
 
 if __name__=="__main__":
     main()
+  
+# Also write to JSON for map integration
+import json
+json_out_path = args.out.replace(".csv", ".json")
+with open(json_out_path, "w", encoding="utf-8") as jf:
+    json.dump([r.finalize() for r in all_rows], jf, ensure_ascii=False, indent=2)
+print(f"Wrote JSON to {json_out_path}")
+
+
