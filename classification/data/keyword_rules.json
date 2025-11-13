@@ -30,6 +30,31 @@
   { "pattern": "\\bshoreditch\\b",           "tag": "shoreditch",        "weight": 1.0, "category": "location" },
   { "pattern": "\\bhackney\\b",              "tag": "hackney",           "weight": 1.0, "category": "location" },
   { "pattern": "\\bberlin\\b",               "tag": "berlin",            "weight": 1.0, "category": "location" },
+  {
+  "pattern": "\\bwest sussex\\b",
+  "tag": "west-sussex",
+  "weight": 1.0,
+  "category": "location"
+},
+{
+  "pattern": "\\bhaywards heath\\b",
+  "tag": "haywards-heath",
+  "weight": 1.0,
+  "category": "location"
+},
+{
+  "pattern": "\\blancing\\b",
+  "tag": "lancing",
+  "weight": 1.0,
+  "category": "location"
+},
+{
+  "pattern": "\\bsouth of england showground\\b",
+  "tag": "south-of-england-showground",
+  "weight": 1.0,
+  "category": "location"
+},
+
 
   { "pattern": "\\bfree\\b",                 "tag": "free-entry",        "weight": 1.0, "category": "price" },
   { "pattern": "\\bno\\s*cover\\b",          "tag": "free-entry",        "weight": 1.0, "category": "price" },

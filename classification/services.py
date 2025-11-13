@@ -174,16 +174,12 @@ def parse_time_fragment(text):
     return (hour, minute)
 
 def guess_base_date(text):
-    "Picks a base calender date from the event information."
+    "Picks a base calendar date from the event information."
 
-    text = text.strip().lower()
-    now = datetime.now() #gets the current date and time as the default
+    text = (text or "").strip().lower()
+    now = datetime.now()  # current date/time as default
 
-    #Uses regex to find a date like '12 Oct' or '12 October'
-    #(\d{1,2}) finds the day (1-31)
-    #Then regex lookds for the month (abbreviation or full name)
-        # Find a date like '12 Oct' or '12 October'
-    # Group 1 = day, Group 2 = month name/abbrev
+    # 1) Named month formats like '12 Oct', '12 October'
     m = re.search(
         r"\b(\d{1,2})\s*"
         r"(jan|feb|mar|apr|may|jun|jul|aug|sep|sept|oct|nov|dec|"
@@ -194,32 +190,45 @@ def guess_base_date(text):
 
     if m:
         day = int(m.group(1))
-        mon = MONTHS[m.group(2).lower()] #month mapped to number
-        year = now.year #assumes current year
+        mon = MONTHS[m.group(2).lower()]
+        year = now.year
         try_date = datetime(year, mon, day)
 
-        #if the date is more than 2 months in the past, it is next year
-        if (try_date - now).days <-60:
+        # if the date is more than 2 months in the past, assume next year
+        if (try_date - now).days < -60:
             year += 1
         return datetime(year, mon, day)
-    
-    #Uses regex to find date in numeric format like '12/10' or '12-10' or '12/10/24'
-    m = re.search(r"\b(\d{1,2})[/-](\d{1,2})(?:[/-](\d{2,4}))?\b", text)
 
+    # 2) Numeric formats like '12/10', '12-10', '12/10/24', '12-10-2025'
+    m = re.search(r"\b(\d{1,2})[/-](\d{1,2})(?:[/-](\d{2,4}))?\b", text)
     if m:
         d = int(m.group(1))
         mon = int(m.group(2))
-        year = int(m.group(3)) #year or current year
-        if year <100: #if 2-digit year like '21' add 2000 so it is converted to '2021'
-            year += 2000
-        return datetime(year, mon, d)
-    
+        year_str = m.group(3)
+
+        # sanity check: must look like a real calendar date
+        if not (1 <= mon <= 12 and 1 <= d <= 31):
+            m = None
+        else:
+            if year_str:
+                year = int(year_str)
+                if year < 100:
+                    year += 2000
+            else:
+                year = now.year
+
+            return datetime(year, mon, d)
+
+    # 3) Relative words
     if "tonight" in text:
         return now
     if "tomorrow" in text:
-        return now + timedelta(days = 1)
-    
+        return now + timedelta(days=1)
+
+    # Fallback: current date/time
     return now
+
+
 
 def find_time_range(text):
     "Finds '10pm-4am' or '22:00-04:00' and returns ((h1,m1), (h2, m2)) or None"
@@ -284,36 +293,47 @@ def extract_datetime(text):
 
     return None
 
-def extract_venue(text):
-    "Extracts venue(address) information from website event information."
+UK_POSTCODE_RE = re.compile(
+    r"\b([A-Z]{1,2}\d{1,2}[A-Z]?)\s*(\d[A-Z]{2})\b",
+    re.IGNORECASE,
+)
 
-    #if there is no text
-    if text == '':
+def extract_venue(text):
+    """
+    Extracts venue info (postcode, area/town, and name) from the caption.
+    Assumes the caption is like:
+      title | description | venue_name | address | Starts... | Prices...
+    """
+    if not text:
         return {"postcode": None, "area": None, "name": None}
 
-    words = text.split() #splits event information (seperates by words)
+    parts = [p.strip() for p in text.split("|")]
+
+    venue_name = parts[2] if len(parts) >= 3 else None
+    address = parts[3] if len(parts) >= 4 else ""
+
     postcode = None
     area = None
-    name = None
 
-    londonAreas = ["dalston", "peckham", "brixton", "shoreditch", 
-                   "camden", "deptford", "hackney", "soho", "islington", 
-                   "clapham", "stratford", "notting", "elephant", "bethnal", "angel"] #have to update
+    # 1) Postcode from the address
+    m = UK_POSTCODE_RE.search(address)
+    if m:
+        postcode = (m.group(1) + m.group(2)).upper()
 
-    for word in words:
-        w = word.lower()
-
-        #Postcode
-        #If the word has at least 2 characters and the first is a letter and the second is a number
-        if len(w) >= 2 and w[0].isalpha and w[1].isdigit():
-            postcode = w.upper()
-
-        for areaName in londonAreas:
-            if areaName in w:
-                area = areaName
+    # 2) Try to guess town/area from address
+    # e.g. "Selsfield Road, Haywards Heath, RH17 6TL, Haywards Heath, RH17 6TL"
+    addr_bits = [b.strip() for b in address.split(",") if b.strip()]
+    if addr_bits:
+        # Heuristic: second-to-last or third-to-last piece is often the town
+        for candidate in reversed(addr_bits):
+            # Skip pure postcodes
+            if UK_POSTCODE_RE.search(candidate):
+                continue
+            if any(ch.isalpha() for ch in candidate):
+                area = candidate
                 break
 
-    return {"postcode": postcode, "area": area, "name": name}
+    return {"postcode": postcode, "area": area, "name": venue_name}
 
 
 def score_candidate_quality(extractions): 
@@ -437,36 +457,126 @@ def needs_human_review(candidate, threshold=0.6):
 def match_to_existing_event(candidate_id):
     return
 
-def promote_candidate_to_event(candidate_id):
+def clean_event_title(raw_title: str) -> str:
+    """
+    Remove location/date suffixes from messy scraped titles.
 
+    Examples:
+      'Banff Mountain Film Festival - London - 14 March 2026'
+        -> 'Banff Mountain Film Festival'
+
+      'Rudolph The Red Nosed Reindeer Light Show- West Sussex'
+        -> 'Rudolph The Red Nosed Reindeer Light Show'
+
+      'Tribute to Hans Zimmer & Film Favourites Illuminated: Lancing, Late'
+        -> 'Tribute to Hans Zimmer & Film Favourites Illuminated'
+    """
+    if not raw_title:
+        return "Untitled Event"
+
+    title = raw_title.strip()
+
+    # 1) First cut at ':'  (handles the Hans Zimmer case)
+    if ":" in title:
+        title = title.split(":", 1)[0].strip()
+
+    # 2) Then cut at ' - ' (nice clean separator)
+    if " - " in title:
+        title = title.split(" - ", 1)[0].strip()
+    # 3) Fallback: any '-' at all
+    elif "-" in title:
+        title = title.split("-", 1)[0].strip()
+
+    return title or "Untitled Event"
+
+
+
+def promote_candidate_to_event(candidate_id):
     cand = EventCandidate.objects.get(pk=candidate_id)
     data = cand.extracted_json or {}
     venue = data.get("venue") or {}
-    location = venue.get("area") or venue.get("postcode")
 
-    # tags from the extraction
-    tags = data.get("tags") or []
+    # Load raw scraped row from CSV
+    try:
+        raw = json.loads(cand.raw_post.raw_json or "{}")
+    except json.JSONDecodeError:
+        raw = {}
 
-    # nicer title: join tags into readable words, e.g. "Film Festival London"
-    if tags:
-        title_parts = [t.replace("-", " ").title() for t in tags]
-        title = " ".join(title_parts)
+    # Use REAL event title from CSV if available
+    # Your CSV columns: event_title OR title
+    # --- Extract raw title from RawPost ---
+    raw = json.loads(cand.raw_post.raw_json or "{}")
+
+    raw_title = (
+        raw.get("event_title")
+        or raw.get("title")
+        or (cand.raw_post.caption.split(" | ")[0] if cand.raw_post.caption else None)
+        or "Untitled Event"
+    )
+
+    # Clean the title
+    event_title = clean_event_title(raw_title)
+
+    # location: prefer city/venue/area/postcode in a sensible order
+    venue = data.get("venue") or {}
+
+    # Raw fields from the CSV
+    city = (raw.get("city") or "").strip()
+    venue_name = (raw.get("venue_name") or "").strip()
+    address = (raw.get("address") or "").strip()
+
+    # Build a more specific location string
+    if venue_name and city:
+        # e.g. "Union Chapel, London" or "Lancing College Chapel, Lancing"
+        location = f"{venue_name}, {city}"
+    elif venue_name and address:
+        # e.g. "South of England Showground, Selsfield Road, Haywards Heath, RH17 6TL..."
+        location = f"{venue_name}, {address}"
+    elif address:
+        location = address
+    elif city:
+        location = city
     else:
-        # fallback: use first part of caption or default
-        title = (cand.raw_post.caption or "").split("|")[0] or "Untitled Event"
+    # fall back to extracted venue (postcode/area) if CSV is missing fields
+        location = venue.get("area") or venue.get("postcode") or ""
+
+
+    # tags -> JSON list for ai_tags (kept for filtering & map)
+    tags_list = data.get("tags") or []
+    ai_tags_json = tags_list  # e.g. ["film-festival", "london"]
+
+    # latitude/longitude from CSV if present
+    lat = raw.get("latitude")
+    lon = raw.get("longitude")
+    try:
+        lat = float(lat) if lat not in (None, "") else None
+    except (TypeError, ValueError):
+        lat = None
+    try:
+        lon = float(lon) if lon not in (None, "") else None
+    except (TypeError, ValueError):
+        lon = None
+
+    start = data.get("start")
+    end = data.get("end")
 
     ev = Event.objects.create(
-        title=title,
+        title=event_title,                # REAL human-readable name
         description=cand.raw_post.caption or "",
-        date_start=data.get("start"),
-        date_end=data.get("end"),
         location=location,
+        date_start=start,
+        date_end=end,
         price_min=data.get("price_min"),
         price_max=data.get("price_max"),
         age_restriction=data.get("age"),
         ai_score=cand.score,
-        ai_tags=tags, 
+        ai_tags=ai_tags_json,            # still JSON list
+        latitude=lat,
+        longitude=lon,
     )
 
     return ev.id
+
+
+
 

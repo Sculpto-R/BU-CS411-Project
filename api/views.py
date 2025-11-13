@@ -2,6 +2,13 @@ from django.shortcuts import render
 import json
 from django.http import JsonResponse, HttpResponseBadRequest
 from django.views.decorators.csrf import csrf_exempt
+from rest_framework import viewsets
+from .models import Event
+from .serializers import EventSerializer
+
+class EventViewSet(viewsets.ReadOnlyModelViewSet):
+    queryset = Event.objects.all().order_by("date_start")
+    serializer_class = EventSerializer
 
 # Create your views here.
 
