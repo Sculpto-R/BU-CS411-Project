@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>iNNiT? Map</title>
+    <style>
+      #map {
+        height: 100vh;
+        width: 100%;
+      }
+    </style>
+  </head>
+  <body>
+    <h1 style="text-align:center;">iNNiT? London Event Map 🗺️</h1>
+    <div id="map"></div>
+
+    <!-- Safely pass Django events into JS -->
+    {{ events|json_script:"events-data" }}
+
+    <script>
+      function initMap() {
+        const london = { lat: 51.5074, lng: -0.1278 };
+        const map = new google.maps.Map(document.getElementById("map"), {
+          zoom: 11,
+          center: london,
+        });
+
+        // Parse the JSON safely
+        const events = JSON.parse(
+          document.getElementById("events-data").textContent
+        );
+
+        events.forEach((event) => {
+          const marker = new google.maps.Marker({
+            position: { lat: event.lat, lng: event.lng },
+            map: map,
+            title: event.name,
+          });
+
+          const infowindow = new google.maps.InfoWindow({
+            content: `
+              <div style="font-family:Arial,sans-serif;">
+                <h3 style="margin:0;">${event.name}</h3>
+                <p style="margin:0;"><b>Address:</b> ${event.address}</p>
+                <p style="margin:0;"><b>Date:</b> ${event.date}</p>
+              </div>
+            `,
+          });
+
+          marker.addListener("click", () => {
+            infowindow.open(map, marker);
+          });
+        });
+      }
+    </script>
+
+    <script
+      async
+      src="https://maps.googleapis.com/maps/api/js?key=AIzaSyC2tWZApy0oF5lBrlK0rmjfX0DFa3dk8do&callback=initMap">
+    </script>
+  </body>
+</html>

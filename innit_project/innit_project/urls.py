@@ -9,6 +9,7 @@ urlpatterns = [
     path('', account_views.landing, name='landing'),
     path('home/', account_views.home, name='home'),
     path('accounts/', include('django.contrib.auth.urls')),
+    path('events/', include('events.urls')),
 ]
 
 urlpatterns += staticfiles_urlpatterns()
