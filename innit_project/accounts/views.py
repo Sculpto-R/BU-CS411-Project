@@ -15,6 +15,9 @@ from django.dispatch import receiver
 from django.shortcuts import render, redirect
 from django.urls import reverse_lazy, reverse
 from .services.scraper import fetch_events_for_preferences
+import csv
+from pathlib import Path
+from django.conf import settings
 
 
 from .forms import AccountForm, DOBForm, PreferencesForm, CustomPasswordChangeForm, ProfileEditForm
@@ -84,9 +87,48 @@ def home_screen(request):
     """
     profile = getattr(request.user, 'profile', None)
     prefs = normalize_preferences(profile)
+
+    # Load scraped events from the shared CSV (if present) so the homepage map
+    # can display them. This mirrors the approach used in the Mapping app.
+    scraped_events = []
+    try:
+        csv_path = Path(settings.BASE_DIR) / "data_scripts" / "event_scraping" / "events_out.csv"
+        if csv_path.exists():
+            with csv_path.open(newline="", encoding="utf-8") as f:
+                reader = csv.DictReader(f)
+                for row in reader:
+                    name = row.get("event_title") or "Untitled event"
+                    address = row.get("address") or ""
+                    date = row.get("start_local") or ""
+                    city = row.get("city") or ""
+
+                    lat = row.get("latitude")
+                    lng = row.get("longitude")
+                    try:
+                        lat = float(lat) if lat not in (None, "", "NaN") else None
+                        lng = float(lng) if lng not in (None, "", "NaN") else None
+                    except ValueError:
+                        lat, lng = None, None
+
+                    # Only include events with coordinates (mapping without coords is not possible here)
+                    if lat is None or lng is None:
+                        continue
+
+                    scraped_events.append({
+                        "name": name,
+                        "address": address or f"{row.get('venue_name','')}, {city}",
+                        "date": date,
+                        "lat": lat,
+                        "lng": lng,
+                    })
+    except Exception:
+        # If anything goes wrong reading the CSV, just continue without scraped events
+        scraped_events = []
+
     return render(request, 'home.html', {
         'profile': profile,
         'preferences': prefs,
+        'scraped_events': scraped_events,
     })
 
 
