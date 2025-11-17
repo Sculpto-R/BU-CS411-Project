@@ -2,20 +2,7 @@
 {% block content %}
     <h1>Welcome, {{ user.first_name|default:user.username }}!</h1>
 
-    <p>Thanks for joining iNNiT. you're all set. We've tailored initial recommendations to your interests below:</p>
-
-    <p>
-        <strong>Preferences:</strong>
-        {% if profile %}
-        {% if profile.get_all_preferences %}
-            {{ profile.get_all_preferences|join:", " }}
-        {% else %}
-            (none)
-        {% endif %}
-        {% else %}
-        (no profile data)
-        {% endif %}
-    </p>
+    <p>Thanks for joining iNNiT. You're all set to discover events tailored to your interests!</p>
 
     <p style="margin-top:1rem;">
         <a href="{% url 'home' %}"><button>Go to iNNiT Home</button></a>

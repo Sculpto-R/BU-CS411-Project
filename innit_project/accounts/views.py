@@ -1,5 +1,7 @@
 import logging
 from datetime import datetime
+from pathlib import Path
+import csv
 
 # User management
 from django.contrib.auth import login, update_session_auth_hash
@@ -80,14 +82,39 @@ def password_change(request):
 def home_screen(request):
     """
     Main homepage with interactive map showing events.
-    Pulls from the api_find_events endpoint asynchronously via JS.
+    Now passes events context for Google Maps rendering.
     """
-    profile = getattr(request.user, 'profile', None)
-    prefs = normalize_preferences(profile)
-    return render(request, 'home.html', {
-        'profile': profile,
-        'preferences': prefs,
-    })
+    events = []
+    # CSV is at the project root (parent of innit_project)
+    csv_path = Path(settings.BASE_DIR).parent / "data_scripts" / "event_scraping" / "events_out.csv"
+    if csv_path.exists():
+        with csv_path.open(newline="", encoding="utf-8") as f:
+            reader = csv.DictReader(f)
+            for row in reader:
+                name = row.get("event_title") or "Untitled event"
+                address = row.get("address") or ""
+                date = row.get("start_local") or ""
+                city = row.get("city") or ""
+                lat = row.get("latitude")
+                lng = row.get("longitude")
+                try:
+                    lat = float(lat) if lat not in (None, "", "NaN") else None
+                    lng = float(lng) if lng not in (None, "", "NaN") else None
+                except ValueError:
+                    lat, lng = None, None
+                if (lat is None or lng is None) and address:
+                    # Optionally, use a geocoding util if available
+                    pass
+                if lat is None or lng is None:
+                    continue
+                events.append({
+                    "name": name,
+                    "address": address or f"{row.get('venue_name', '')}, {city}",
+                    "date": date,
+                    "lat": lat,
+                    "lng": lng,
+                })
+    return render(request, 'home.html', {"events": events})
 
 
 class CustomLoginView(LoginView):
@@ -223,9 +250,16 @@ def reg_step4(request):
             profile = Profile.objects.get(user=user)
             profile.date_of_birth = dob_date
             profile.age_verified = True
-            profile.presets = prefs.get('presets', [])
-            profile.custom_preferences = prefs.get('custom', [])
+            
+            # Ensure we get the correct preference data
+            preset_list = prefs.get('presets', [])
+            custom_list = prefs.get('custom', [])
+            
+            profile.presets = preset_list if isinstance(preset_list, list) else []
+            profile.custom_preferences = custom_list if isinstance(custom_list, list) else []
+            
             profile.save(update_fields=['date_of_birth', 'age_verified', 'presets', 'custom_preferences'])
+            logger.info("User %s registered with presets=%s, custom=%s", user.username, profile.presets, profile.custom_preferences)
 
             login(request, user)
             clear_reg_session(request)
@@ -234,8 +268,13 @@ def reg_step4(request):
         initial = {}
         if 'preferences' in reg_data:
             prefs = reg_data['preferences']
-            initial['presets'] = prefs.get('presets', [])
-            initial['custom_preferences'] = ', '.join(prefs.get('custom', []))
+            initial['presets'] = prefs.get('presets', []) or []
+            custom_data = prefs.get('custom', []) or []
+            # Convert list back to comma-separated string for form display
+            if isinstance(custom_data, list):
+                initial['custom_preferences'] = ', '.join(custom_data)
+            else:
+                initial['custom_preferences'] = ''
         form = PreferencesForm(initial=initial)
 
     return render(request, 'accounts/register_step4.html', {'form': form, 'progress': 4})
@@ -324,6 +363,7 @@ def edit_account(request):
         form = ProfileEditForm(instance=profile, user=request.user)
     return render(request, 'accounts/edit_account.html', {'form': form})
 
+@login_required
 @login_required
 def edit_dob(request):
     profile = getattr(request.user, 'profile', None)

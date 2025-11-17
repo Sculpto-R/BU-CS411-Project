@@ -4,16 +4,19 @@
 <form method="post">
   {% csrf_token %}
   {{ form.non_field_errors }}
+  {% for err in form.non_field_errors %}<div style="color:red;">{{ err }}</div>{% endfor %}
 
   <div>
     <label>Presets</label>
     {{ form.presets }}
+    {% for err in form.presets.errors %}<div style="color:red;">{{ err }}</div>{% endfor %}
   </div>
 
   <div>
     {{ form.custom_preferences.label_tag }}
     {{ form.custom_preferences }}
     <small class="small">{{ form.custom_preferences.help_text }}</small>
+    {% for err in form.custom_preferences.errors %}<div style="color:red;">{{ err }}</div>{% endfor %}
   </div>
 
   <button type="submit" class="primary-button">Save Preferences</button>

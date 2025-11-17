@@ -48,6 +48,15 @@ class Profile(models.Model):
                 out.append(p)
         return out
 
+    def get_all_preferences(self):
+        """Return a combined list of preset and custom preferences for display."""
+        all_prefs = []
+        if isinstance(self.presets, (list, tuple)):
+            all_prefs.extend([str(p) for p in self.presets if p])
+        if isinstance(self.custom_preferences, (list, tuple)):
+            all_prefs.extend([str(p) for p in self.custom_preferences if p])
+        return all_prefs if all_prefs else None
+
 
 class UserPreference(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)

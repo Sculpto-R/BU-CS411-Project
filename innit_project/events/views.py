@@ -11,8 +11,11 @@ from .utils import get_coordinates  # keep for fallback, or remove if not needed
 def index(request):
     events = []
 
-    # Adjust if your CSV is in a different folder
-    csv_path = Path(settings.BASE_DIR) / "data_scripts" / "event_scraping" / "events_out.csv"
+    # CSV is at the project root (parent of innit_project)
+    csv_path = Path(settings.BASE_DIR).parent / "data_scripts" / "event_scraping" / "events_out.csv"
+
+    if not csv_path.exists():
+        return render(request, "events/map.html", {"events": []})
 
     with csv_path.open(newline="", encoding="utf-8") as f:
         reader = csv.DictReader(f)

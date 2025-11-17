@@ -7,7 +7,7 @@ app_name = 'accounts'
 urlpatterns = [
     path('', views.profile, name='profile'),
     path('login/', views.CustomLoginView.as_view(), name='login'),
-    path('logout/', LogoutView.as_view(), name='logout'),
+    path('logout/', LogoutView.as_view(next_page='landing'), name='logout'),
 
     # Multi-step registration
     path('register/step-1/', views.reg_step1, name='register_step1'),
