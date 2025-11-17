@@ -1,6 +1,5 @@
 from django.db import models
 from django.contrib.auth.models import User
-from django.contrib.postgres.fields import ArrayField  # Not necessary; we'll use JSONField below
 from django.db.models import JSONField
 from datetime import date
 
