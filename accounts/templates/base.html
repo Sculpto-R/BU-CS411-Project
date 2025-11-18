@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>iNNiT? | {% block title %}{% endblock %}</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+        }
+        .nav {
+            background: black;
+            color: white;
+            padding: 12px;
+        }
+        .content {
+            padding: 20px;
+        }
+    </style>
+
+    {% block head %}{% endblock %}
+</head>
+<body>
+
+<div class="nav">
+    <b>iNNiT?</b>
+    {% if user.is_authenticated %}
+        — Hello, {{ user.first_name }}
+        | <a href="{% url 'accounts:logout' %}" style="color: #ccc;">Logout</a>
+    {% endif %}
+</div>
+
+<div class="content">
+    {% block content %}{% endblock %}
+</div>
+
+</body>
+</html>

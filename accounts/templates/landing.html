@@ -1,0 +1,10 @@
+{% extends "base.html" %}
+{% block title %}Welcome{% endblock %}
+
+{% block content %}
+<h1>Welcome to iNNiT?</h1>
+<p>Your student-friendly London event finder.</p>
+
+<a href="{% url 'accounts:login' %}">Login</a> |
+<a href="{% url 'accounts:register_step1' %}">Register</a>
+{% endblock %}

@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>Edit Preferences</h1>
+<form method="post">
+  {% csrf_token %}
+  {{ form.non_field_errors }}
+
+  <div>
+    <label>Presets</label>
+    {{ form.presets }}
+  </div>
+
+  <div>
+    {{ form.custom_preferences.label_tag }}
+    {{ form.custom_preferences }}
+    <small class="small">{{ form.custom_preferences.help_text }}</small>
+  </div>
+
+  <button type="submit" class="primary-button">Save Preferences</button>
+  <a href="{% url 'accounts:profile' %}"><button type="button" class="primary-button">Cancel</button></a>
+</form>
+{% endblock %}

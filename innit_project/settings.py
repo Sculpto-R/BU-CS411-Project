@@ -38,12 +38,18 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+
+    # Third Party
     "rest_framework",
+
+    # Project Apps
+    "accounts",
     "classification.apps.ClassificationConfig",
     "ingestion",
     "events",
-    "api"
+    "api",
 ]
+
 
 
 MIDDLEWARE = [
@@ -61,7 +67,7 @@ ROOT_URLCONF = "innit_project.urls"
 TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
-        "DIRS": [],
+        "DIRS": [BASE_DIR / "templates"],
         "APP_DIRS": True,
         "OPTIONS": {
             "context_processors": [
@@ -186,3 +192,4 @@ LOGGING = {
         },
     },
 }
+GOOGLE_MAPS_API_KEY = "AIzaSyC2tWZApy0oF5lBrlK0rmjfX0DFa3dk8do"

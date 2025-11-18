@@ -1,28 +1,27 @@
-"""
-URL configuration for innit_project project.
-
-The `urlpatterns` list routes URLs to views. For more information please see:
-    https://docs.djangoproject.com/en/5.2/topics/http/urls/
-Examples:
-Function views
-    1. Add an import:  from my_app import views
-    2. Add a URL to urlpatterns:  path('', views.home, name='home')
-Class-based views
-    1. Add an import:  from other_app.views import Home
-    2. Add a URL to urlpatterns:  path('', Home.as_view(), name='home')
-Including another URLconf
-    1. Import the include() function: from django.urls import include, path
-    2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
-"""
 from django.contrib import admin
 from django.urls import path, include
 from accounts import views as account_views
 from django.contrib.staticfiles.urls import staticfiles_urlpatterns
 
-
 urlpatterns = [
+    # Landing page
+    path('', account_views.landing_page, name='landing'),
+
+    # Admin panel
+    path('admin/', admin.site.urls),
+
+    # Accounts (your account system)
+    path('accounts/', include('accounts.urls')),              # your custom URLs
+    path('accounts/', include('django.contrib.auth.urls')),   # login/logout/password reset
+
+    # Home screen after login
+    path('home/', account_views.home_screen, name='home'),
+
+    # API
     path('api/', include('api.urls')),
-    path("admin/", admin.site.urls),
-    path('api/', include('api.urls')),
+
+    # Event map
     path('events/', include('events.urls')),
 ]
+
+urlpatterns += staticfiles_urlpatterns()

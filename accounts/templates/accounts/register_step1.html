@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% block content %}
+    <h1>Register for iNNiT</h1>
+
+    <div style="margin-top: 1rem;">
+        <div style="background:#888;padding:1rem;border-radius:6px;">
+        <p>To register for iNNiT we'll ask just a few questions across a short signup flow. You'll provide account info, confirm your date of birth (18+), then choose preferences so we can tailor events to you.</p>
+        <p><strong>Time:</strong> ~1–2 minutes</p>
+        <p><strong>Note:</strong> This service is for users 18 and older.</p>
+        <p style="margin-top:1rem;">
+            <a href="{% url 'accounts:register_step2' %}"><button>Start Registration</button></a>
+        </p>
+        </div>
+    </div>
+
+    <!-- progress bar -->
+    <div style="margin-top:1.25rem;">
+        <div style="width:100%;background:#f0f0f0;height:12px;border-radius:6px;">
+        <div style="width:20%;background:#0077b6;height:12px;border-radius:6px;"></div>
+        </div>
+        <small>Step 1 of 4</small>
+    </div>
+{% endblock %}

@@ -1,0 +1,69 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Home | iNNiT?{% endblock %}
+
+{% block content %}
+<div style="width: 100%; height: 100vh;">
+    <div id="map" style="width:100%; height:100%;"></div>
+</div>
+
+<script>
+    let map;
+
+    function initMap() {
+        const london = { lat: 51.509865, lng: -0.118092 };
+
+        map = new google.maps.Map(document.getElementById("map"), {
+            zoom: 12,
+            center: london,
+        });
+
+        loadEvents();
+    }
+
+    function loadEvents() {
+        fetch("/api/events/")
+            .then(response => response.json())
+            .then(events => {
+                if (!Array.isArray(events) || events.length === 0) {
+                    console.warn("No events received.");
+                    return;
+                }
+
+                events.forEach(evt => {
+                    if (!evt.latitude || !evt.longitude) return;
+
+                    // Create marker
+                    const marker = new google.maps.Marker({
+                        position: { lat: evt.latitude, lng: evt.longitude },
+                        map: map,
+                        title: evt.title,
+                    });
+
+                    // Info window
+                    const infoWindow = new google.maps.InfoWindow({
+                        content: `
+                            <div>
+                                <h3>${evt.title}</h3>
+                                <p><strong>Start:</strong> ${evt.date_start}</p>
+                                <p><strong>Location:</strong> ${evt.location}</p>
+                                <p><strong>Price:</strong> £${evt.price_min} – £${evt.price_max}</p>
+                            </div>
+                        `,
+                    });
+
+                    marker.addListener("click", () => {
+                        infoWindow.open(map, marker);
+                    });
+                });
+            })
+            .catch(err => console.error("Failed to load events:", err));
+    }
+</script>
+
+<script async
+    src="https://maps.googleapis.com/maps/api/js?key={{ GOOGLE_MAPS_API_KEY }}&callback=initMap">
+</script>
+
+{% endblock %}
