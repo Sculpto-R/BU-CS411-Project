@@ -26,11 +26,11 @@ The system combines:
 |-------|------------|---------|
 | Backend | Python (Django Framework) | Web application framework |
 | Database | SQLite (Development) | User, profile, event, and preference storage |
-| Frontend | HTML, embedded CSS, Leaflet.js | Lightweight UI and mapping |
-| Scraping | BeautifulSoup4, Requests | (To be implemented) Event scraping pipeline |
-| Testing | Django TestCase | Unit and integration tests |
+| Frontend | HTML, embedded CSS | Lightweight UI, Mapping Interface (Google Maps) |
+| Scraping | BeautifulSoup4, Requests | Event scraping pipeline |
+| Testing | Django TestCase, Python test files | Unit and integration tests |
 | Containerization | Docker, docker-compose | Environment isolation and deployment |
-| API Data | OpenStreetMap (Leaflet Tiles) | Map rendering base layer |
+| API Data | Google Maps | Map rendering base-layer |
 
 
 ---
@@ -40,12 +40,12 @@ The system combines:
 | Requirement | Fulfillment |
 |-------------|-------------|
 | Decoupled frontend/backend | Django Templates & REST |
-| (At least) one external API call | Mapping API's |
+| (At least) one external API call | Google Maps API |
 | Use of framework | Django |
 | A database-integration containing (at least) user accounts with salted password hashes | SQLite & built-in salted passwords |
-| Unit & integration tests | various tests across files |
-| Docstrings & Logging | key views |
-| Exception-handling | various tests across files |
+| Unit & integration tests | various tests across files via python test files, etc. |
+| Docstrings & Logging | found throughout various files |
+| Exception-handling | exception-handling found in select files |
 | Containerization | Dockerfile |
 
 
@@ -58,3 +58,4 @@ Open the contained file in your editor of choice.
 From here on, 
  navigate to the "innit_project" folder in-terminal, then type in the following in a terminal:
 `python manage.py runserver`
+...
