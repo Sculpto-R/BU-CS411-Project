@@ -12,8 +12,6 @@ from django.contrib.auth.decorators import login_required
 from django.conf import settings
 from django.core.mail import send_mail
 from django.db import IntegrityError
-from django.db.models.signals import post_save
-from django.dispatch import receiver
 from django.shortcuts import render, redirect
 from django.urls import reverse_lazy, reverse
 from .services.scraper import fetch_events_for_preferences
@@ -322,22 +320,6 @@ def profile(request):
         'accounts/profile.html',
         {'form': form, 'pwd_form': pwd_form, 'profile': profile}
     )
-
-
-@receiver(post_save, sender=User)
-def create_or_update_user_profile(sender, instance, created, **kwargs):
-    from .models import Profile
-    try:
-        if created:
-            profile, created_flag = Profile.objects.get_or_create(user=instance)
-            if created_flag:
-                logger.info(f"Profile created for new user: {instance.username}")
-        else:
-            if hasattr(instance, 'profile'):
-                instance.profile.save()
-                logger.debug(f"Profile updated for user: {instance.username}")
-    except IntegrityError as e:
-        logger.error(f"Profile creation failed for {instance.username}: {e}")
 
 
 @login_required

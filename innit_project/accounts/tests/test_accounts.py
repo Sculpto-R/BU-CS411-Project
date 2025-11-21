@@ -23,6 +23,7 @@ class AccountsFlowTests(TestCase):
         # Step 1: initialize session (GET)
         r1 = client.get(reverse('accounts:register_step1'))
         self.assertEqual(r1.status_code, 200)
+        logger.info("Step 1 status: %s", r1.status_code)
 
         # Step 2: post account details
         r2 = client.post(reverse('accounts:register_step2'), {
@@ -33,6 +34,7 @@ class AccountsFlowTests(TestCase):
             'password1': 'StrongPass!123',
             'password2': 'StrongPass!123',
         }, follow=True)
+        logger.info("Step 2 status: %s, session: %s", r2.status_code, dict(client.session))
         self.assertIn(r2.status_code, (200, 302))
 
         # Step 3: post dob (18+)
@@ -41,6 +43,7 @@ class AccountsFlowTests(TestCase):
         r3 = client.post(reverse('accounts:register_step3'), {
             'date_of_birth': dob.isoformat()
         }, follow=True)
+        logger.info("Step 3 status: %s, session: %s", r3.status_code, dict(client.session))
         self.assertIn(r3.status_code, (200, 302))
 
         # Step 4: preferences (choose one preset and one custom)
@@ -48,11 +51,14 @@ class AccountsFlowTests(TestCase):
             'presets': ['party'],
             'custom_preferences': 'hangout, coffee'
         }, follow=True)
+        logger.info("Step 4 status: %s, session: %s", r4.status_code, dict(client.session))
 
         # After final step user should be created and be logged in
         self.assertEqual(User.objects.filter(username='newuser').exists(), True)
         new_user = User.objects.get(username='newuser')
         profile = Profile.objects.get(user=new_user)
+        logger.info("Profile after registration: age_verified=%s, dob=%s, presets=%s, custom=%s", 
+                    profile.age_verified, profile.date_of_birth, profile.presets, profile.custom_preferences)
         self.assertEqual(profile.age_verified, True)
         # check presets and custom preferences saved (depending on model type; we expect list-like)
         # If stored as list:

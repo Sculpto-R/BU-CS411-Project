@@ -1,7 +1,7 @@
 from django.test import TestCase
 from django.contrib.auth.models import User
-from accounts.models import Profile
-from accounts.services.scraper import fetch_events_for_preferences
+from ..models import Profile
+from ..services.scraper import fetch_events_for_preferences
 
 class ScraperServiceTests(TestCase):
     def setUp(self):
